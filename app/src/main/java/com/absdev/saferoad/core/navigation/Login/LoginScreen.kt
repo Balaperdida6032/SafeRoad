@@ -1,4 +1,4 @@
-package com.absdev.saferoad
+package com.absdev.saferoad.core.navigation.LoginScreen
 
 import android.util.Log
 import androidx.compose.foundation.layout.Column
@@ -25,7 +25,7 @@ import androidx.compose.material3.Icon
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
-fun LoginScreen(auth: FirebaseAuth/*, navigateToHome:() -> Unit */) {
+fun LoginScreen(auth: FirebaseAuth, navigateToHome:() -> Unit) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -60,6 +60,7 @@ fun LoginScreen(auth: FirebaseAuth/*, navigateToHome:() -> Unit */) {
             if (task.isSuccessful){
                 //Navegar
                 Log.i("agu", "LOGIN OK")
+                navigateToHome()
             }else {
                 //Error
                 Log.i("agu", "NO LOGIN OK")
