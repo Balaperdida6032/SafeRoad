@@ -1,15 +1,14 @@
-package com.absdev.saferoad.core.navigation
+package com.absdev.saferoad.core.navigation.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.toRoute
-import com.absdev.saferoad.HomeScreen
-import com.absdev.saferoad.LoginScreen
-import com.absdev.saferoad.SingScreen
+import com.absdev.saferoad.core.navigation.SingUp.SingScreen
 import com.absdev.saferoad.SplashScreen
 import com.absdev.saferoad.WelcomeScreen
+import com.absdev.saferoad.core.navigation.HomeScreen.HomeScreen
+import com.absdev.saferoad.core.navigation.LoginScreen.LoginScreen
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
@@ -34,12 +33,13 @@ fun NavigationWrapper(auth: FirebaseAuth) {
         }
 
         composable<Login> {
-            LoginScreen (auth)
-                /*username -> navController.navigate(Home(username = username))*/
+            LoginScreen (auth) {
+                navController.navigate(Home)
+            }
         }
 
         composable<Home> {
-            HomeScreen { navController.navigate(Welcome) }
+            HomeScreen ()
         }
     }
 }

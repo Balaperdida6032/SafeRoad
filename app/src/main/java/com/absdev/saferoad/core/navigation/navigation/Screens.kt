@@ -1,4 +1,4 @@
-package com.absdev.saferoad.core.navigation
+package com.absdev.saferoad.core.navigation.navigation
 
 import kotlinx.serialization.Serializable
 

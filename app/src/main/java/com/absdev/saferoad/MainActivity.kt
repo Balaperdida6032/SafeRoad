@@ -5,9 +5,7 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.absdev.saferoad.core.navigation.NavigationWrapper
+import com.absdev.saferoad.core.navigation.navigation.NavigationWrapper
 import com.absdev.saferoad.ui.theme.SafeRoadTheme
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth

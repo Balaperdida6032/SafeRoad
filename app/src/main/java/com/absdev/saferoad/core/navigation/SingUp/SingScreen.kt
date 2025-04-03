@@ -1,4 +1,4 @@
-package com.absdev.saferoad
+package com.absdev.saferoad.core.navigation.SingUp
 
 import android.util.Log
 import androidx.compose.foundation.layout.Column
@@ -39,8 +39,6 @@ fun SingScreen(auth:  FirebaseAuth /*navigateToHome:(String) -> Unit*/) {
             value = email,
             onValueChange = { email = it },
             label = { Text("Email") })
-
-        Spacer(modifier = Modifier.weight(1f))
 
         //Campo de contrasenia
         TextField(
