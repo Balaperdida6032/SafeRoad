@@ -10,6 +10,7 @@ import com.absdev.saferoad.WelcomeScreen
 import com.absdev.saferoad.core.navigation.HomeScreen.HomeScreen
 import com.absdev.saferoad.core.navigation.LoginScreen.LoginScreen
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun NavigationWrapper(auth: FirebaseAuth) {
