@@ -67,6 +67,8 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.firebase.firestore.ktx)
 
+    implementation("com.github.Gurupreet:FontAwesomeCompose:1.0.0")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
