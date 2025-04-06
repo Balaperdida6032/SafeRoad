@@ -29,7 +29,9 @@ fun NavigationWrapper(auth: FirebaseAuth) {
         }
 
         composable<Sign> {
-            SingScreen (auth)
+            SingScreen (auth) /*{
+                navController.navigate(Login)
+            }*/
         //{  /*username -> navController.navigate(Home(username = username))*/ }
         }
 

@@ -58,7 +58,7 @@ fun LoginScreen(auth: FirebaseAuth, navigateToHome:() -> Unit) {
 
         Spacer(modifier = Modifier.weight(1f))
 
-        //Campo de Usuario
+        //Campo de Email
         TextField(
             value = email,
             onValueChange = { email = it },
@@ -67,7 +67,7 @@ fun LoginScreen(auth: FirebaseAuth, navigateToHome:() -> Unit) {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        //Campo de contrasenia
+        //Campo de Password
         TextField(
             value = password,
             onValueChange = { password = it },
@@ -85,7 +85,6 @@ fun LoginScreen(auth: FirebaseAuth, navigateToHome:() -> Unit) {
             modifier = Modifier
                 .padding(horizontal = 42.dp)
         )
-
 
         Spacer(modifier = Modifier.height(40.dp))
 
@@ -109,6 +108,7 @@ fun LoginScreen(auth: FirebaseAuth, navigateToHome:() -> Unit) {
         ) {
             Text(text = "Continue", color = White)
         }
+
         Spacer(modifier = Modifier.weight(1f))
     }
 }
