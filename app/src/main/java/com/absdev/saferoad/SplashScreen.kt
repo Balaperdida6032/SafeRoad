@@ -48,9 +48,3 @@ fun SplashScreen(navigateToWelcome: () -> Unit){
         Spacer(modifier = Modifier.weight(1f))
     }
 }
-
-@Preview
-@Composable
-fun SplashScreenView(){
-    SplashScreen(navigateToWelcome = {})
-}
