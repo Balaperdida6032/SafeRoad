@@ -18,20 +18,20 @@ import com.absdev.saferoad.core.navigation.BottomNavigation.BottomNavItem
 import com.absdev.saferoad.core.navigation.HomeScreen.HomeScreen
 import com.absdev.saferoad.core.navigation.Profile.ProfileScreen
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.google.firebase.ktx.Firebase
 
 @Composable
 fun MainNavigationScreen() {
     val navController = rememberNavController()
-    val systemUiController = rememberSystemUiController()
-    val useDarkIcons = false // usamos íconos blancos
-    val statusBarColor = Color.Black
 
+    val systemUiController = rememberSystemUiController()
     SideEffect {
         systemUiController.setSystemBarsColor(
-            color = statusBarColor,
-            darkIcons = useDarkIcons
+            color = Color.Black,
+            darkIcons = true // esto es clave para que los íconos sean blancos
         )
     }
+
     Scaffold(
         bottomBar = {
             BottomBar(navController = navController)
@@ -46,7 +46,8 @@ fun MainNavigationScreen() {
                 HomeScreen()
             }
             composable(BottomNavItem.Profile.route) {
-                ProfileScreen() // Reemplazá con tu pantalla real
+                ProfileScreen(navController)
+
             }
         }
     }

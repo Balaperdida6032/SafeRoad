@@ -9,14 +9,16 @@ import com.absdev.saferoad.SplashScreen
 import com.absdev.saferoad.WelcomeScreen
 import com.absdev.saferoad.core.navigation.HomeScreen.HomeScreen
 import com.absdev.saferoad.core.navigation.LoginScreen.LoginScreen
+import com.absdev.saferoad.core.navigation.Profile.ProfileScreen
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
-fun NavigationWrapper(auth: FirebaseAuth) {
+fun NavigationWrapper(auth: FirebaseAuth,isUserLoggedIn: Boolean) {
     val navController = rememberNavController()
+    val startDestination = if (isUserLoggedIn) Home else Splash
 
-    NavHost(navController = navController, startDestination = Splash) {
+    NavHost(navController = navController, startDestination = startDestination ) {
         composable<Splash> {
             SplashScreen (
                 navigateToWelcome = { navController.navigate(Welcome) })
@@ -29,21 +31,23 @@ fun NavigationWrapper(auth: FirebaseAuth) {
         }
 
         composable<Sign> {
-            SingScreen (auth) /*{
-                navController.navigate(Login)
-            }*/
-        //{  /*username -> navController.navigate(Home(username = username))*/ }
+            SingScreen (auth)
         }
 
         composable<Login> {
             LoginScreen (auth) {
-                navController.navigate(Home)
+                navController.navigate(Home) {
+                    popUpTo(Login) { inclusive = true }
+                }
             }
         }
 
         composable<Home> {
             MainNavigationScreen()
-        //HomeScreen ()
+        }
+
+        composable<Profile> {
+            ProfileScreen(navController)
         }
     }
 }

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -31,26 +32,36 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import coil.compose.AsyncImage
 import com.absdev.saferoad.core.navigation.HomeView.HomeViewModel
-import com.absdev.saferoad.core.navigation.model.Artist
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
+import com.absdev.saferoad.core.navigation.model.Carrera
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @Composable
 fun HomeScreen(viewModel: HomeViewModel = HomeViewModel()) {
 
-    val artist: State<List<Artist>> = viewModel.artist.collectAsState()
+    val carrera: State<List<Carrera>> = viewModel.carrera.collectAsState()
+
+    val systemUiController = rememberSystemUiController()
+    SideEffect {
+        systemUiController.setSystemBarsColor(
+            color = Color.Black,
+            darkIcons = false // esto es clave para que los íconos sean blancos
+        )
+    }
 
     Column(Modifier
         .fillMaxSize()
-        .background(Color.Black)) {
-        Spacer(modifier = Modifier.weight(1f))
-        Text("Popular artist",
+        .background(Color.Black)
+        .statusBarsPadding()) {
+        Text("Carreras Disponibles",
             color = Color.White,
             fontWeight = FontWeight.Bold,
             fontSize = 30.sp,
@@ -60,8 +71,8 @@ fun HomeScreen(viewModel: HomeViewModel = HomeViewModel()) {
         Spacer(modifier = Modifier.height(12.dp))
 
         LazyRow {
-            items(artist.value){
-                ArtistItem(it)
+            items(carrera.value){
+                CarreraItem(it)
             }
         }
         Spacer(modifier = Modifier.weight(1f))
@@ -70,7 +81,7 @@ fun HomeScreen(viewModel: HomeViewModel = HomeViewModel()) {
 }
 
 @Composable
-fun ArtistItem(artist: Artist) {
+fun CarreraItem(carrera: Carrera) {
     Card(
         modifier = Modifier
             .padding(16.dp)
@@ -82,8 +93,8 @@ fun ArtistItem(artist: Artist) {
         Box(modifier = Modifier.fillMaxSize()) {
             // Imagen con degradado desde mitad hacia abajo
             AsyncImage(
-                model = artist.image,
-                contentDescription = "Artist image",
+                model = carrera.image,
+                contentDescription = "Carrera image",
                 modifier = Modifier
                     .fillMaxSize()
                     .drawWithContent {
@@ -108,14 +119,14 @@ fun ArtistItem(artist: Artist) {
                 horizontalAlignment = Alignment.Start
             ) {
                 Text(
-                    text = artist.name.orEmpty(),
+                    text = carrera.name.orEmpty(),
                     color = Color.White,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = artist.description.orEmpty(),
+                    text = carrera.description.orEmpty(),
                     color = Color.White.copy(alpha = 0.9f),
                     fontSize = 14.sp,
                     maxLines = 3
