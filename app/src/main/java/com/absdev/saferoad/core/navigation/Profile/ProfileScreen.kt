@@ -15,6 +15,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -24,7 +25,9 @@ import com.google.firebase.auth.FirebaseAuth
 import java.nio.file.WatchEvent
 
 @Composable
-fun ProfileScreen(navController: NavHostController){
+fun ProfileScreen(navController: NavHostController, viewModel: ProfileViewModel = ProfileViewModel()){
+    val profileState = viewModel.profile.collectAsState()
+
     Text("Esta es la pantalla de perfil", modifier = Modifier.padding (24.dp))
     Column(
         modifier = Modifier
@@ -32,9 +35,38 @@ fun ProfileScreen(navController: NavHostController){
             .padding(24.dp),
         verticalArrangement = Arrangement.Center
     ) {
-        Text("Perfil de usuario", style = MaterialTheme.typography.titleLarge)
+        profileState.value?.let { profile ->
+            // ✅ Solo muestra si hay información
+            profile.name?.let {
+                Text(text = "Nombre: $it")
+            }
 
-        Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+
+            profile.age?.let {
+                Text(text = "Edad: $it")
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            profile.email?.let {
+                Text(text = "Email: $it")
+
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Button(onClick = {
+                FirebaseAuth.getInstance().signOut()
+                navController.navigate(Login) {
+                    popUpTo(0)
+                }
+            }) {
+                Text("Cerrar sesión")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
 
         Button(
             onClick = {

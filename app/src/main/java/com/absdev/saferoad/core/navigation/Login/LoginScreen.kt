@@ -29,6 +29,10 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion
 import androidx.compose.ui.graphics.Color.Companion.White
@@ -40,75 +44,87 @@ import com.absdev.saferoad.ui.theme.ShapeButton
 import com.google.firebase.auth.FirebaseAuth
 import com.guru.fontawesomecomposelib.FaIcon
 import com.guru.fontawesomecomposelib.FaIcons
+import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(auth: FirebaseAuth, navigateToHome:() -> Unit) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black),
-        horizontalAlignment = Alignment.CenterHorizontally)
-    {
-        Spacer(modifier = Modifier.weight(1f))
 
-        Text(text = "LOGIN SCREEN", fontSize = 25.sp, color = White)
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
-        Spacer(modifier = Modifier.weight(1f))
-
-        //Campo de Email
-        TextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Email")
-            })
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        //Campo de Password
-        TextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("Password") },
-            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            trailingIcon = {
-                IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                    if (passwordVisible) {
-                        FaIcon(faIcon = FaIcons.Eye)
-                    } else {
-                        FaIcon(faIcon = FaIcons.EyeSlash)
-                    }
-                }
-            },
+    Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        containerColor = Color.Black
+    ) { padding ->
+        Column(
             modifier = Modifier
-                .padding(horizontal = 42.dp)
-        )
-
-        Spacer(modifier = Modifier.height(40.dp))
-
-        Button(
-            onClick = { auth.signInWithEmailAndPassword(email, password).addOnCompleteListener{ task ->
-                if (task.isSuccessful){
-                    //Navegar
-                    Log.i("agu", "LOGIN OK")
-                    navigateToHome()
-                }else {
-                    //Error
-                    Log.i("agu", "NO LOGIN OK")
-                }
-            } },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-                .padding(horizontal = 54.dp)
-                .border(2.dp, ShapeButton, CircleShape),
-            colors = ButtonDefaults.buttonColors(containerColor = GreenLogo)
+                .fillMaxSize()
+                .background(Color.Black),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = "Continue", color = White)
-        }
+            Spacer(modifier = Modifier.weight(1f))
 
-        Spacer(modifier = Modifier.weight(1f))
+            Text(text = "LOGIN SCREEN", fontSize = 25.sp, color = White)
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            //Campo de Email
+            TextField(
+                value = email,
+                onValueChange = { email = it },
+                label = {
+                    Text("Email")
+                })
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            //Campo de Password
+            TextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Password") },
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                trailingIcon = {
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        if (passwordVisible) {
+                            FaIcon(faIcon = FaIcons.Eye)
+                        } else {
+                            FaIcon(faIcon = FaIcons.EyeSlash)
+                        }
+                    }
+                },
+                modifier = Modifier
+                    .padding(horizontal = 42.dp)
+            )
+
+            Spacer(modifier = Modifier.height(40.dp))
+
+            Button(
+                onClick = {
+                    auth.signInWithEmailAndPassword(email, password).addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            navigateToHome()
+                        } else {
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Error ❌")
+                            }
+                        }
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+                    .padding(horizontal = 54.dp)
+                    .border(2.dp, ShapeButton, CircleShape),
+                colors = ButtonDefaults.buttonColors(containerColor = GreenLogo)
+            ) {
+                Text(text = "Continue", color = White)
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+        }
     }
 }
