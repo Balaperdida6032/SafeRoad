@@ -16,3 +16,6 @@ object Sign
 
 @Serializable
 object Home
+
+@Serializable
+object Profile

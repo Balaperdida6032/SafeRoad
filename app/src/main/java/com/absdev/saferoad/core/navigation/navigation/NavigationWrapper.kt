@@ -42,7 +42,8 @@ fun NavigationWrapper(auth: FirebaseAuth) {
         }
 
         composable<Home> {
-            HomeScreen ()
+            MainNavigationScreen()
+        //HomeScreen ()
         }
     }
 }
