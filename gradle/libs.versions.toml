@@ -1,5 +1,7 @@
 [versions]
+accompanistSystemuicontroller = "0.30.1"
 agp = "8.8.0"
+fontawesomecompose = "1.0.0"
 kotlin = "2.0.0"
 coreKtx = "1.15.0"
 junit = "4.13.2"
@@ -17,7 +19,9 @@ coil = "2.7.0"
 firebaseFirestoreKtx = "25.1.3"
 
 [libraries]
+accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontroller" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+fontawesomecompose = { module = "com.github.Gurupreet:FontAwesomeCompose", version.ref = "fontawesomecompose" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
