@@ -82,10 +82,10 @@ fun WelcomeScreen(navigateToLogin:() -> Unit = {}, navigateToSign:() -> Unit = {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        CustomButton(
-            Modifier.clickable {  },
-            painterResource(id = R.drawable.google),title = "Sign in with Google"
-        )
+//        CustomButton(
+//            Modifier.clickable {  },
+//            painterResource(id = R.drawable.google),title = "Sign in with Google"
+//        )
         Spacer(modifier = Modifier.weight(1f))
     }
 }

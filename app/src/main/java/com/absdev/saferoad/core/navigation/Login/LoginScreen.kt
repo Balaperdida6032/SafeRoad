@@ -106,7 +106,10 @@ fun LoginScreen(auth: FirebaseAuth, navigateToHome:() -> Unit) {
                 onClick = {
                     auth.signInWithEmailAndPassword(email, password).addOnCompleteListener { task ->
                         if (task.isSuccessful) {
+                            //if user
                             navigateToHome()
+                            //if admin
+                            //navigateToAdminHome()
                         } else {
                             scope.launch {
                                 snackbarHostState.showSnackbar("Error ❌")

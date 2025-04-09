@@ -51,7 +51,6 @@ fun ProfileScreen(navController: NavHostController, viewModel: ProfileViewModel 
 
             profile.email?.let {
                 Text(text = "Email: $it")
-
             }
 
             Spacer(modifier = Modifier.height(32.dp))
