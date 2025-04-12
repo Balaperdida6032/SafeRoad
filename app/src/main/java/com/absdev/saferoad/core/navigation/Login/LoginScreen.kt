@@ -42,12 +42,14 @@ import com.absdev.saferoad.ui.theme.Black
 import com.absdev.saferoad.ui.theme.GreenLogo
 import com.absdev.saferoad.ui.theme.ShapeButton
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import com.guru.fontawesomecomposelib.FaIcon
 import com.guru.fontawesomecomposelib.FaIcons
 import kotlinx.coroutines.launch
 
 @Composable
-fun LoginScreen(auth: FirebaseAuth, navigateToHome:() -> Unit) {
+fun LoginScreen(auth: FirebaseAuth, navigateToHome:() -> Unit, navigateToAdminHome:() -> Unit) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -106,17 +108,40 @@ fun LoginScreen(auth: FirebaseAuth, navigateToHome:() -> Unit) {
                 onClick = {
                     auth.signInWithEmailAndPassword(email, password).addOnCompleteListener { task ->
                         if (task.isSuccessful) {
-                            //if user
-                            navigateToHome()
-                            //if admin
-                            //navigateToAdminHome()
-                        } else {
-                            scope.launch {
-                                snackbarHostState.showSnackbar("Error ❌")
+                            val userId = auth.currentUser?.uid
+                            val db = Firebase.firestore
+
+                            userId?.let { uid ->
+                                db.collection("profile").document(uid).get()
+                                    .addOnSuccessListener { document ->
+                                        if (document.exists()) {
+                                            val role = document.getString("role")
+                                            Log.i("ROL", "El rol es: $role")
+                                            when (role) {
+                                                "user" -> navigateToHome()
+                                                "admin" -> navigateToAdminHome()
+                                                else -> scope.launch {
+                                                    snackbarHostState.showSnackbar("Rol no reconocido ❌")
+                                                }
+                                            }
+                                        } else {
+                                            Log.w("ROL", "Documento no encontrado para UID: $uid")
+                                            scope.launch {
+                                                snackbarHostState.showSnackbar("Perfil no encontrado ❌")
+                                            }
+                                        }
+                                    }
+                                    .addOnFailureListener { exception ->
+                                        Log.e("ROL", "Error al obtener el documento: $exception")
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar("Error de conexión ❌")
+                                        }
+                                    }
                             }
                         }
                     }
-                },
+                }
+                ,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp)

@@ -134,13 +134,14 @@ fun SingScreen(auth: FirebaseAuth) {
                                 name = name,
                                 age = age.toIntOrNull(),
                                 email = email,
-                                password = password
+                                password = password,
+                                role = "user"
                             )
 
                             if (userId != null) {
                                 FirebaseFirestore.getInstance()
                                     .collection("profile")
-                                    .document(userId) // Usa el UID del usuario para evitar duplicados
+                                    .document(userId)
                                     .set(profile)
                                     .addOnSuccessListener {
                                         Log.d("Firestore", "Perfil guardado con éxito")
