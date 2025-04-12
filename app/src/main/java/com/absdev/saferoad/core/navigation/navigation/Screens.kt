@@ -18,4 +18,7 @@ object Sign
 object Home
 
 @Serializable
+object AdminHome
+
+@Serializable
 object Profile

@@ -1,78 +1,69 @@
 package com.absdev.saferoad.core.navigation.Profile
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExitToApp
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import com.absdev.saferoad.core.navigation.navigation.Welcome
+import com.google.firebase.auth.FirebaseAuth
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
-import com.absdev.saferoad.core.navigation.navigation.Login
-import com.google.firebase.auth.FirebaseAuth
-import java.nio.file.WatchEvent
 
 @Composable
-fun ProfileScreen(navController: NavHostController, viewModel: ProfileViewModel = ProfileViewModel()){
+fun ProfileScreen(
+    navController: NavHostController,
+    viewModel: ProfileViewModel = viewModel()
+) {
     val profileState = viewModel.profile.collectAsState()
+    val auth = FirebaseAuth.getInstance()
 
-    Text("Esta es la pantalla de perfil", modifier = Modifier.padding (24.dp))
+    // 👁 Estado reactivo del usuario actual
+    var currentUser by remember { mutableStateOf(auth.currentUser) }
+
+    // 🔁 Navega automáticamente si el usuario fue deslogueado
+    LaunchedEffect(currentUser) {
+        if (currentUser == null) {
+            navController.navigate(Welcome) {
+                popUpTo(0) { inclusive = true }
+            }
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(24.dp),
         verticalArrangement = Arrangement.Center
     ) {
+        Text("Esta es la pantalla de perfil", modifier = Modifier.padding(bottom = 24.dp))
+
         profileState.value?.let { profile ->
-            // ✅ Solo muestra si hay información
             profile.name?.let {
                 Text(text = "Nombre: $it")
+                Spacer(modifier = Modifier.height(8.dp))
             }
-
-            Spacer(modifier = Modifier.height(8.dp))
 
             profile.age?.let {
                 Text(text = "Edad: $it")
+                Spacer(modifier = Modifier.height(8.dp))
             }
-
-            Spacer(modifier = Modifier.height(8.dp))
 
             profile.email?.let {
                 Text(text = "Email: $it")
+                Spacer(modifier = Modifier.height(8.dp))
             }
 
             Spacer(modifier = Modifier.height(32.dp))
-
-            Button(onClick = {
-                FirebaseAuth.getInstance().signOut()
-                navController.navigate(Login) {
-                    popUpTo(0)
-                }
-            }) {
-                Text("Cerrar sesión")
-            }
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
 
         Button(
             onClick = {
-                FirebaseAuth.getInstance().signOut()
-                navController.navigate(Login) {
-                    popUpTo(0) // Limpia el back stack
-                }
+                auth.signOut()
+                currentUser = null // 🔁 actualiza el estado y dispara LaunchedEffect
             },
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
         ) {

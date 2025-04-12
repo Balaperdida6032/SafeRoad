@@ -23,10 +23,8 @@ class MainActivity : ComponentActivity() {
         auth = Firebase.auth
         enableEdgeToEdge()
         setContent {
-
             SafeRoadTheme {
-                val isUserLoggedIn = auth.currentUser != null
-                NavigationWrapper(auth,isUserLoggedIn)
+                NavigationWrapper(auth)
             }
         }
     }
