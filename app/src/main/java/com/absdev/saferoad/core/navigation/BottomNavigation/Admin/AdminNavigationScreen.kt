@@ -62,7 +62,6 @@ fun AdminBottomBar(navController: NavHostController) {
     val items = listOf(AdminBottomNavItem.AdminHome, AdminBottomNavItem.Profile)
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
- //god
     NavigationBar(containerColor = Color.Black) {
         items.forEach { item ->
             NavigationBarItem(
