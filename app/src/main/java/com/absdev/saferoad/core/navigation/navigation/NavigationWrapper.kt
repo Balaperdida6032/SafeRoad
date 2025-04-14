@@ -9,6 +9,7 @@ import com.absdev.saferoad.WelcomeScreen
 import com.absdev.saferoad.core.navigation.BottomNavigation.Admin.AdminNavigationScreen
 import com.absdev.saferoad.core.navigation.Home.CarreraDetail.CarreraDetailScreen
 import com.absdev.saferoad.core.navigation.Home.CarreraForm.CarreraFormScreen
+import com.absdev.saferoad.core.navigation.Home.CarreraForm.UploadImageScreen
 import com.absdev.saferoad.core.navigation.HomeScreen.HomeScreen
 import com.absdev.saferoad.core.navigation.LoginScreen.LoginScreen
 import com.absdev.saferoad.core.navigation.Profile.ProfileScreen
@@ -95,6 +96,10 @@ fun NavigationWrapper(auth: FirebaseAuth) {
                 carrera?.let {
                     CarreraDetailScreen(it, navController)
                 }
+            }
+
+            composable<UploadImage> {
+                UploadImageScreen()
             }
 
         }

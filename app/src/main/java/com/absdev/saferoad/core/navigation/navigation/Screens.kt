@@ -28,3 +28,6 @@ object CarreraForm
 
 @Serializable
 object CarreraDetailScreen
+
+@Serializable
+object UploadImage

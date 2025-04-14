@@ -46,6 +46,12 @@ import androidx.navigation.NavController
 import com.absdev.saferoad.core.navigation.model.Carrera
 import com.absdev.saferoad.core.navigation.navigation.CarreraDetailScreen
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import android.util.Base64
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.Image
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 
 @Composable
 fun HomeScreen(
@@ -107,23 +113,39 @@ fun CarreraItem(carrera: Carrera, onClick: () -> Unit) {
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             // Imagen con degradado desde mitad hacia abajo
-            AsyncImage(
-                model = carrera.image,
-                contentDescription = "Carrera image",
-                modifier = Modifier
-                    .fillMaxSize()
-                    .drawWithContent {
-                        drawContent()
-                        drawRect(
-                            brush = Brush.verticalGradient(
-                                colors = listOf(Color.Transparent, Color.Black),
-                                startY = size.height * 0.5f,
-                                endY = size.height
+            val imageBitmap = remember(carrera.image) {
+                decodeBase64ToImage(carrera.image ?: "")
+            }
+
+            if (imageBitmap != null) {
+                Image(
+                    bitmap = imageBitmap,
+                    contentDescription = "Carrera image",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .drawWithContent {
+                            drawContent()
+                            drawRect(
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(Color.Transparent, Color.Black),
+                                    startY = size.height * 0.5f,
+                                    endY = size.height
+                                )
                             )
-                        )
-                    },
-                contentScale = ContentScale.Crop
-            )
+                        },
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.DarkGray),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Imagen no disponible", color = Color.White)
+                }
+            }
+
 
             // Contenido (nombre, descripción)
             Column(
@@ -148,5 +170,15 @@ fun CarreraItem(carrera: Carrera, onClick: () -> Unit) {
                 )
             }
         }
+    }
+}
+
+fun decodeBase64ToImage(base64: String): ImageBitmap? {
+    return try {
+        val decodedBytes = Base64.decode(base64, Base64.DEFAULT)
+        val bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
+        bitmap?.asImageBitmap()
+    } catch (e: Exception) {
+        null
     }
 }
