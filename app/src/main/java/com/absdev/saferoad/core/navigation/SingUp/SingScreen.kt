@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Button
@@ -39,6 +40,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.absdev.saferoad.core.navigation.model.Profile
 import com.absdev.saferoad.ui.theme.GreenLogo
 import com.absdev.saferoad.ui.theme.ShapeButton
@@ -49,7 +51,7 @@ import com.guru.fontawesomecomposelib.FaIcons
 import kotlinx.coroutines.launch
 
 @Composable
-fun SingScreen(auth: FirebaseAuth) {
+fun SingScreen(auth: FirebaseAuth, navController: NavController) {
     var name by remember { mutableStateOf("") }
     var age by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -69,6 +71,17 @@ fun SingScreen(auth: FirebaseAuth) {
                 .padding(padding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            IconButton(
+                onClick = { navController.popBackStack() },
+                modifier = Modifier.align(Alignment.Start)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "Volver",
+                    tint = Color.White
+                )
+            }
+
             Spacer(modifier = Modifier.weight(1f))
 
             Text(text = "Register SCREEN", fontSize = 25.sp, color = White)

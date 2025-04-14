@@ -2,6 +2,7 @@ package com.absdev.saferoad.core.navigation.Home.Admin.AdminHomeScreen
 
 import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -20,13 +21,18 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.absdev.saferoad.core.navigation.HomeView.HomeViewModel
 import com.absdev.saferoad.core.navigation.model.Carrera
+import com.absdev.saferoad.core.navigation.navigation.CarreraDetailScreen
+import com.absdev.saferoad.core.navigation.navigation.CarreraForm
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @Composable
-fun AdminHomeScreen(viewModel: HomeViewModel = HomeViewModel()) {
+fun AdminHomeScreen(
+    navController: NavController,
+    viewModel: HomeViewModel = HomeViewModel()) {
     val carrera: State<List<Carrera>> = viewModel.carrera.collectAsState()
 
     val systemUiController = rememberSystemUiController()
@@ -55,19 +61,28 @@ fun AdminHomeScreen(viewModel: HomeViewModel = HomeViewModel()) {
             Spacer(modifier = Modifier.height(12.dp))
 
             LazyRow {
-                items(carrera.value) {
-                    CarreraItem(it)
+                items(carrera.value) { item ->
+                    CarreraItem(carrera = item) {
+                        val currentEntry = navController.currentBackStackEntry
+                        if (currentEntry != null) {
+                            currentEntry.savedStateHandle.set("carrera", item)
+                            navController.navigate(CarreraDetailScreen)
+                        } else {
+                            Log.e("NAV", "currentBackStackEntry es null")
+                        }
+
+                    }
                 }
+
             }
 
             Spacer(modifier = Modifier.weight(1f))
         }
 
-        // 🔘 Floating Action Button
         FloatingActionButton(
             onClick = {
                 Log.i("FAB", "Botón flotante presionado")
-                // TODO: acción al presionar
+                navController.navigate(CarreraForm::class.qualifiedName!!)
             },
             containerColor = Color.White,
             contentColor = Color.Black,
@@ -83,11 +98,12 @@ fun AdminHomeScreen(viewModel: HomeViewModel = HomeViewModel()) {
 }
 
 @Composable
-fun CarreraItem(carrera: Carrera) {
+fun CarreraItem(carrera: Carrera, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .padding(16.dp)
-            .size(width = 280.dp, height = 450.dp),
+            .size(width = 280.dp, height = 450.dp)
+            .clickable { onClick() },
         shape = RoundedCornerShape(24.dp),
         elevation = CardDefaults.cardElevation(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Black)

@@ -20,14 +20,20 @@ import androidx.navigation.compose.rememberNavController
 import com.absdev.saferoad.core.navigation.BottomNavigation.BottomNavItem
 
 import com.absdev.saferoad.core.navigation.Home.Admin.AdminHomeScreen.AdminHomeScreen
+import com.absdev.saferoad.core.navigation.Home.CarreraDetail.CarreraDetailScreen
+import com.absdev.saferoad.core.navigation.Home.CarreraForm.CarreraFormScreen
 import com.absdev.saferoad.core.navigation.Profile.ProfileScreen
+import com.absdev.saferoad.core.navigation.model.Carrera
+import com.absdev.saferoad.core.navigation.navigation.CarreraDetailScreen
+import com.absdev.saferoad.core.navigation.navigation.CarreraForm
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import java.lang.reflect.Modifier
 
 @Composable
 fun AdminNavigationScreen() {
     val navController = rememberNavController()
-
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
     val systemUiController = rememberSystemUiController()
     SideEffect {
         systemUiController.setSystemBarsColor(
@@ -38,7 +44,9 @@ fun AdminNavigationScreen() {
 
     Scaffold(
         bottomBar = {
-            AdminBottomBar(navController = navController)
+            if (currentRoute != CarreraForm::class.qualifiedName) {
+                AdminBottomBar(navController = navController)
+            }
         }
     ) { padding ->
         NavHost(
@@ -47,12 +55,23 @@ fun AdminNavigationScreen() {
             modifier = androidx.compose.ui.Modifier.padding(padding)
         ) {
             composable(AdminBottomNavItem.AdminHome.route) {
-                AdminHomeScreen()
+                AdminHomeScreen(navController)
             }
             composable(AdminBottomNavItem.Profile.route) {
                 ProfileScreen(navController)
-
             }
+            composable(CarreraForm::class.qualifiedName!!) {
+                CarreraFormScreen(navController)
+            }
+
+            composable<CarreraDetailScreen> {
+                val carrera = navController.previousBackStackEntry?.savedStateHandle?.get<Carrera>("carrera")
+                carrera?.let {
+                    CarreraDetailScreen(it, navController)
+                }
+            }
+
+
         }
     }
 }

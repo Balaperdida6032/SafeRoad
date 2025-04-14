@@ -2,6 +2,7 @@ package com.absdev.saferoad.core.navigation.HomeScreen
 
 import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,11 +42,15 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
+import androidx.navigation.NavController
 import com.absdev.saferoad.core.navigation.model.Carrera
+import com.absdev.saferoad.core.navigation.navigation.CarreraDetailScreen
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @Composable
-fun HomeScreen(viewModel: HomeViewModel = HomeViewModel()) {
+fun HomeScreen(
+    navController : NavController,
+    viewModel: HomeViewModel = HomeViewModel()) {
 
     val carrera: State<List<Carrera>> = viewModel.carrera.collectAsState()
 
@@ -71,9 +76,18 @@ fun HomeScreen(viewModel: HomeViewModel = HomeViewModel()) {
         Spacer(modifier = Modifier.height(12.dp))
 
         LazyRow {
-            items(carrera.value){
-                CarreraItem(it)
+            items(carrera.value) { item ->
+                CarreraItem(carrera = item) {
+                    val currentEntry = navController.currentBackStackEntry
+                    if (currentEntry != null) {
+                        currentEntry.savedStateHandle.set("carrera", item)
+                        navController.navigate(CarreraDetailScreen)
+                    } else {
+                        Log.e("NAV", "currentBackStackEntry es null")
+                    }
+                }
             }
+
         }
         Spacer(modifier = Modifier.weight(1f))
     }
@@ -81,11 +95,12 @@ fun HomeScreen(viewModel: HomeViewModel = HomeViewModel()) {
 }
 
 @Composable
-fun CarreraItem(carrera: Carrera) {
+fun CarreraItem(carrera: Carrera, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .padding(16.dp)
-            .size(width = 280.dp, height = 450.dp),
+            .size(width = 280.dp, height = 450.dp)
+            .clickable { onClick() },
         shape = RoundedCornerShape(24.dp),
         elevation = CardDefaults.cardElevation(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Black)

@@ -15,8 +15,10 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.*
 import com.absdev.saferoad.core.navigation.BottomNavigation.BottomNavItem
+import com.absdev.saferoad.core.navigation.Home.CarreraDetail.CarreraDetailScreen
 import com.absdev.saferoad.core.navigation.HomeScreen.HomeScreen
 import com.absdev.saferoad.core.navigation.Profile.ProfileScreen
+import com.absdev.saferoad.core.navigation.model.Carrera
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.firebase.ktx.Firebase
 
@@ -43,11 +45,17 @@ fun MainNavigationScreen() {
             modifier = Modifier.padding(padding)
         ) {
             composable(BottomNavItem.Home.route) {
-                HomeScreen()
+                HomeScreen(navController)
             }
             composable(BottomNavItem.Profile.route) {
                 ProfileScreen(navController)
+            }
 
+            composable<CarreraDetailScreen> {
+                val carrera = navController.previousBackStackEntry?.savedStateHandle?.get<Carrera>("carrera")
+                carrera?.let {
+                    CarreraDetailScreen(it, navController)
+                }
             }
         }
     }

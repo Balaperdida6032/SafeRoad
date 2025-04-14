@@ -21,10 +21,8 @@ fun ProfileScreen(
     val profileState = viewModel.profile.collectAsState()
     val auth = FirebaseAuth.getInstance()
 
-    // 👁 Estado reactivo del usuario actual
     var currentUser by remember { mutableStateOf(auth.currentUser) }
 
-    // 🔁 Navega automáticamente si el usuario fue deslogueado
     LaunchedEffect(currentUser) {
         if (currentUser == null) {
             navController.navigate(Welcome) {
@@ -57,13 +55,21 @@ fun ProfileScreen(
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
+            if (profile.role == "admin"){
+                profile.role.let {
+                    Text(text = "Rol: $it")
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+            }
+
+
             Spacer(modifier = Modifier.height(32.dp))
         }
 
         Button(
             onClick = {
                 auth.signOut()
-                currentUser = null // 🔁 actualiza el estado y dispara LaunchedEffect
+                currentUser = null
             },
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
         ) {

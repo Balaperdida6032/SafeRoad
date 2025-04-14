@@ -22,3 +22,9 @@ object AdminHome
 
 @Serializable
 object Profile
+
+@Serializable
+object CarreraForm
+
+@Serializable
+object CarreraDetailScreen
