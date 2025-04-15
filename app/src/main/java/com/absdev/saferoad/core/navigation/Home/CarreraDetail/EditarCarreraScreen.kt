@@ -1,4 +1,4 @@
-package com.absdev.saferoad.core.navigation.Home.CarreraForm
+package com.absdev.saferoad.core.navigation.Home.CarreraDetail
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -8,14 +8,11 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import android.util.Base64
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,21 +21,21 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.absdev.saferoad.core.navigation.model.Carrera
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import java.io.ByteArrayOutputStream
 
 @Composable
-fun CarreraFormScreen(navController: NavController) {
-    var name by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var imageBase64 by remember { mutableStateOf<String?>(null) }
-    var loading by remember { mutableStateOf(false) }
+fun EditarCarreraScreen(carrera: Carrera, navController: NavController) {
+    var name by remember { mutableStateOf(carrera.name.orEmpty()) }
+    var description by remember { mutableStateOf(carrera.description.orEmpty()) }
+    var imageBase64 by remember { mutableStateOf(carrera.image) }
 
-    val db = FirebaseFirestore.getInstance()
     val context = LocalContext.current
+    val db = FirebaseFirestore.getInstance()
+
     var selectedUri by remember { mutableStateOf<Uri?>(null) }
 
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) {
@@ -53,15 +50,7 @@ fun CarreraFormScreen(navController: NavController) {
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        IconButton(onClick = { navController.popBackStack() },
-            modifier = Modifier.align(Alignment.Start)
-        ) {
-            Icon(
-                imageVector = Icons.Default.ArrowBack,
-                contentDescription = "Volver",
-                tint = Color.White
-            )
-        }
+        Text("Editar carrera", color = Color.White, fontSize = 24.sp)
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -84,7 +73,7 @@ fun CarreraFormScreen(navController: NavController) {
         Spacer(modifier = Modifier.height(12.dp))
 
         Button(onClick = { launcher.launch("image/*") }) {
-            Text("Seleccionar imagen")
+            Text("Seleccionar nueva imagen")
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -103,42 +92,26 @@ fun CarreraFormScreen(navController: NavController) {
 
         Button(
             onClick = {
-                loading = true
-                val carreraId = db.collection("carreras").document().id
-                val userId = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
-
-                val nuevaCarrera = Carrera(
-                    id = carreraId,
-                    name = name,
-                    description = description,
-                    image = imageBase64.orEmpty(),
-                    userId = userId
+                val updated = mapOf(
+                    "name" to name,
+                    "description" to description,
+                    "image" to imageBase64.orEmpty()
                 )
-
-                db.collection("carreras").document(carreraId)
-                    .set(nuevaCarrera)
+                db.collection("carreras").document(carrera.id!!)
+                    .update(updated)
                     .addOnSuccessListener {
-                        Log.i("Firestore", "Carrera creada con éxito")
                         navController.popBackStack()
                     }
-                    .addOnFailureListener {
-                        Log.e("Firestore", "Error al crear carrera", it)
-                    }
-                    .addOnCompleteListener {
-                        loading = false
-                    }
-            }
-            ,
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !loading && !name.isBlank() && !description.isBlank() && !imageBase64.isNullOrEmpty()
+            },
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Text(text = if (loading) "Guardando..." else "Crear carrera")
+            Text("Guardar cambios")
         }
     }
 }
 
 fun encodeImageToBase64(context: Context, uri: Uri): String? {
-    val bitmap: Bitmap = if (Build.VERSION.SDK_INT < 28) {
+    val bitmap = if (Build.VERSION.SDK_INT < 28) {
         MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
     } else {
         val source = ImageDecoder.createSource(context.contentResolver, uri)

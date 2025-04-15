@@ -31,3 +31,10 @@ object CarreraDetailScreen
 
 @Serializable
 object UploadImage
+
+@Serializable
+object EditarCarrera
+
+@Serializable
+object EditarPerfil
+

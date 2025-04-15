@@ -40,4 +40,8 @@ class ProfileViewModel : ViewModel() {
             }
         }
     }
+
+    fun refreshProfile() {
+        fetchUserProfile()
+    }
 }

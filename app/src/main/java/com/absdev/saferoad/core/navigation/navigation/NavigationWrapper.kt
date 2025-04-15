@@ -8,10 +8,12 @@ import com.absdev.saferoad.SplashScreen
 import com.absdev.saferoad.WelcomeScreen
 import com.absdev.saferoad.core.navigation.BottomNavigation.Admin.AdminNavigationScreen
 import com.absdev.saferoad.core.navigation.Home.CarreraDetail.CarreraDetailScreen
+import com.absdev.saferoad.core.navigation.Home.CarreraDetail.EditarCarreraScreen
 import com.absdev.saferoad.core.navigation.Home.CarreraForm.CarreraFormScreen
 import com.absdev.saferoad.core.navigation.Home.CarreraForm.UploadImageScreen
 import com.absdev.saferoad.core.navigation.HomeScreen.HomeScreen
 import com.absdev.saferoad.core.navigation.LoginScreen.LoginScreen
+import com.absdev.saferoad.core.navigation.Profile.Edit.EditarPerfilScreen
 import com.absdev.saferoad.core.navigation.Profile.ProfileScreen
 import com.absdev.saferoad.core.navigation.SingUp.SingScreen
 import com.absdev.saferoad.core.navigation.model.Carrera
@@ -100,6 +102,19 @@ fun NavigationWrapper(auth: FirebaseAuth) {
 
             composable<UploadImage> {
                 UploadImageScreen()
+            }
+
+            composable<EditarCarrera> {
+                val carrera = navController.previousBackStackEntry
+                    ?.savedStateHandle
+                    ?.get<Carrera>("carrera")
+                carrera?.let {
+                    EditarCarreraScreen(it, navController)
+                }
+            }
+
+            composable<EditarPerfil> {
+                EditarPerfilScreen(navController)
             }
 
         }
