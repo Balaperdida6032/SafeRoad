@@ -107,7 +107,6 @@ fun SingScreen(auth: FirebaseAuth, navController: NavController) {
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
 
-
             Spacer(modifier = Modifier.height(12.dp))
 
             TextField(

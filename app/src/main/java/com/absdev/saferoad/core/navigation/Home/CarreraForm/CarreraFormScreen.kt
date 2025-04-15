@@ -103,13 +103,15 @@ fun CarreraFormScreen(navController: NavController) {
         Button(
             onClick = {
                 loading = true
+                val carreraId = db.collection("carreras").document().id
                 val nuevaCarrera = Carrera(
+                    id = carreraId,
                     name = name,
                     description = description,
                     image = imageBase64.orEmpty()
                 )
-                db.collection("carreras")
-                    .add(nuevaCarrera)
+                db.collection("carreras").document(carreraId)
+                    .set(nuevaCarrera)
                     .addOnSuccessListener {
                         Log.i("Firestore", "Carrera creada con éxito")
                         navController.popBackStack()
@@ -142,5 +144,3 @@ fun encodeImageToBase64(context: Context, uri: Uri): String? {
     val byteArray = outputStream.toByteArray()
     return Base64.encodeToString(byteArray, Base64.DEFAULT)
 }
-
-
