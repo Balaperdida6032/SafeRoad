@@ -18,6 +18,7 @@ import com.absdev.saferoad.core.navigation.BottomNavigation.BottomNavItem
 import com.absdev.saferoad.core.navigation.Home.CarreraDetail.CarreraDetailScreen
 import com.absdev.saferoad.core.navigation.HomeScreen.HomeScreen
 import com.absdev.saferoad.core.navigation.Profile.ProfileScreen
+import com.absdev.saferoad.core.navigation.maps.ParticipanteCarreraStartScreen
 import com.absdev.saferoad.core.navigation.model.Carrera
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.firebase.ktx.Firebase
@@ -57,6 +58,15 @@ fun MainNavigationScreen() {
                     CarreraDetailScreen(it, navController)
                 }
             }
+
+            composable<ParticipanteCarreraStart> { backStackEntry ->
+                val carreraId = backStackEntry.arguments?.getString("carreraId") ?: return@composable
+                ParticipanteCarreraStartScreen(
+                    idCarrera = carreraId,
+                    navController = navController // si lo necesita
+                )
+            }
+
         }
     }
 }

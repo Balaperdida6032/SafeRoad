@@ -44,6 +44,11 @@ android {
 
 dependencies {
 
+    //maps
+    implementation(libs.maps.compose)
+    implementation(libs.play.services.maps)
+    implementation(libs.accompanist.permissions)
+
     //imagenes
     implementation(libs.coil)
 
@@ -74,6 +79,7 @@ dependencies {
     //status bar
     implementation(libs.accompanist.systemuicontroller)
     implementation(libs.play.services.location)
+    implementation(libs.androidx.runtime.livedata)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

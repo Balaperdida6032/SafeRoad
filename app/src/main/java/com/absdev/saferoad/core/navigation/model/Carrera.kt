@@ -9,6 +9,7 @@ data class Carrera (
     val image:String? = null,
     val userId:String? = null,
     val hasLimit: Boolean = false,
-    val limit: Int? = null
+    val limit: Int? = null,
+    var isStarted: Boolean? = null
 ): Serializable
 

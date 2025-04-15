@@ -20,9 +20,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.absdev.saferoad.core.navigation.model.Carrera
+import com.absdev.saferoad.core.navigation.navigation.CarreraMapa
 import com.absdev.saferoad.core.navigation.navigation.EditarCarrera
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 
 @Composable
 fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
@@ -30,31 +32,30 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
     var showMenu by remember { mutableStateOf(false) }
     var carreraActualizada by remember { mutableStateOf<Carrera?>(null) }
     var showConfirmDelete by remember { mutableStateOf(false) }
+    var carreraIniciada by remember { mutableStateOf(false) }
 
     val db = FirebaseFirestore.getInstance()
-
-    // ViewModel para inscripciones
     val inscribirseViewModel = remember { InscribirseViewModel() }
     val userId = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
     var mensajeInscripcion by remember { mutableStateOf<String?>(null) }
 
-    // Cargar datos actualizados de Firestore
     LaunchedEffect(Unit) {
-        carrera.id?.let { id ->
-            db.collection("carreras").document(id).get()
-                .addOnSuccessListener { snapshot ->
-                    carreraActualizada = snapshot.toObject(Carrera::class.java)
-                }
-        }
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return@LaunchedEffect
 
-        val uid = FirebaseAuth.getInstance().currentUser?.uid
-        uid?.let {
-            db.collection("profile").document(it).get()
-                .addOnSuccessListener { document ->
-                    val isAdmin = document.getString("role") == "admin"
-                    val isCreator = carrera.userId == uid
-                    showConfigButton = isAdmin && isCreator
-                }
+        carrera.id?.let { idCarrera ->
+            val carreraRef = db.collection("carreras").document(idCarrera)
+            val perfilRef = db.collection("profile").document(userId)
+
+            val carreraDoc = carreraRef.get().await()
+            val perfilDoc = perfilRef.get().await()
+
+            val isStarted = carreraDoc.getBoolean("isStarted") == true
+            val isAdmin = perfilDoc.getString("role") == "admin"
+            val isCreator = carrera.userId == userId
+            showConfigButton = isAdmin && isCreator
+
+            carreraActualizada = carreraDoc.toObject(Carrera::class.java)
+            carreraIniciada = isStarted
         }
     }
 
@@ -161,11 +162,9 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
 
         LaunchedEffect(carreraVisible, actualizarInscriptosTrigger.value) {
             carreraVisible.id?.let { id ->
-                db.collection("carreras").document(id).collection("inscripciones")
-                    .get()
-                    .addOnSuccessListener { snapshot ->
-                        inscriptosActuales = snapshot.size()
-                    }
+                val snapshot = db.collection("carreras").document(id)
+                    .collection("inscripciones").get().await()
+                inscriptosActuales = snapshot.size()
             }
         }
 
@@ -203,43 +202,9 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
             Text(text = it, color = Color.White)
         }
 
-        if (showConfirmDelete) {
-            AlertDialog(
-                onDismissRequest = { showConfirmDelete = false },
-                title = { Text("¿Eliminar carrera?", color = Color.White) },
-                text = { Text("Esta acción no se puede deshacer.", color = Color.White) },
-                confirmButton = {
-                    TextButton(onClick = {
-                        showConfirmDelete = false
-                        carrera.id?.let { id ->
-                            FirebaseFirestore.getInstance().collection("carreras")
-                                .document(id)
-                                .delete()
-                                .addOnSuccessListener {
-                                    navController.popBackStack()
-                                }
-                        }
-                    }) {
-                        Text("Eliminar", color = Color.Red)
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showConfirmDelete = false }) {
-                        Text("Cancelar", color = Color.White)
-                    }
-                },
-                containerColor = Color.DarkGray
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        var carreraIniciada by remember { mutableStateOf(false) }
-
-        if (showConfigButton) {
+        if (showConfigButton && !carreraIniciada) {
             Button(
                 onClick = {
-                    // Guardar en Firestore si querés persistir el inicio
                     carreraVisible.id?.let { id ->
                         db.collection("carreras").document(id)
                             .update("isStarted", true)
@@ -259,8 +224,9 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
         if (carreraIniciada) {
             Button(
                 onClick = {
-                    // Navegación a pantalla del mapa
-                    navController.navigate("CarreraMapa/${carreraVisible.id}")
+                    carreraVisible.id?.let {
+                        navController.navigate(CarreraMapa(it))
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -269,5 +235,26 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
                 Text("Ver carrera")
             }
         }
+
+        if (carreraIniciada && showConfigButton) {
+            Button(
+                onClick = {
+                    carreraVisible.id?.let { id ->
+                        db.collection("carreras").document(id)
+                            .update("isStarted", false)
+                            .addOnSuccessListener {
+                                carreraIniciada = false
+                            }
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+            ) {
+                Text("Finalizar carrera", color = Color.White)
+            }
+        }
+
     }
 }

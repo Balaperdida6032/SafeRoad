@@ -38,3 +38,8 @@ object EditarCarrera
 @Serializable
 object EditarPerfil
 
+@Serializable
+data class CarreraMapa(val carreraId: String)
+
+@Serializable
+data class ParticipanteCarreraStart(val carreraId: String)

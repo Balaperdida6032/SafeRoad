@@ -19,6 +19,11 @@ import com.absdev.saferoad.core.navigation.SingUp.SingScreen
 import com.absdev.saferoad.core.navigation.model.Carrera
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.absdev.saferoad.core.navigation.maps.CarreraMapaScreen
+import com.absdev.saferoad.core.navigation.maps.ParticipanteCarreraStartScreen
+import com.absdev.saferoad.core.navigation.navigation.ParticipanteCarreraStart
+import com.absdev.saferoad.core.navigation.maps.ParticipanteCarreraStartScreen
+
 
 @Composable
 fun NavigationWrapper(auth: FirebaseAuth) {
@@ -116,6 +121,19 @@ fun NavigationWrapper(auth: FirebaseAuth) {
             composable<EditarPerfil> {
                 EditarPerfilScreen(navController)
             }
+
+            composable<CarreraMapa> { backStackEntry ->
+                val carreraId = backStackEntry.arguments?.getString("carreraId") ?: return@composable
+                CarreraMapaScreen(idCarrera = carreraId)
+            }
+
+            composable<ParticipanteCarreraStart> { backStackEntry ->
+                val carreraId = backStackEntry.arguments?.getString("carreraId") ?: return@composable
+                ParticipanteCarreraStartScreen(
+                    idCarrera = carreraId,
+                    navController = navController)
+            }
+
 
         }
     }
