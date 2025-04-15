@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "826312314095",
+    "firebase_url": "https://saferoadbeta-default-rtdb.firebaseio.com",
     "project_id": "saferoadbeta",
     "storage_bucket": "saferoadbeta.firebasestorage.app"
   },
@@ -12,7 +13,12 @@
           "package_name": "com.absdev.saferoad"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "826312314095-3kuq2t0c6fa36p7cp3s50ihs8hfskh4a.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyC118AGFEOwp8MzGLlxRnZHHz3d8TA_83I"
@@ -20,7 +26,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "826312314095-3kuq2t0c6fa36p7cp3s50ihs8hfskh4a.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

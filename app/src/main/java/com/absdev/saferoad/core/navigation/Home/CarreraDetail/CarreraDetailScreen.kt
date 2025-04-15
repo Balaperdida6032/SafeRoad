@@ -33,6 +33,11 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
 
     val db = FirebaseFirestore.getInstance()
 
+    // ViewModel para inscripciones
+    val inscribirseViewModel = remember { InscribirseViewModel() }
+    val userId = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
+    var mensajeInscripcion by remember { mutableStateOf<String?>(null) }
+
     // Cargar datos actualizados de Firestore
     LaunchedEffect(Unit) {
         carrera.id?.let { id ->
@@ -146,6 +151,58 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
             color = Color.White
         )
 
+        Spacer(modifier = Modifier.height(24.dp))
+
+        var inscriptosActuales by remember { mutableStateOf(0) }
+        val tieneLimite = carreraVisible.hasLimit == true
+        val limite = carreraVisible.limit ?: 0
+
+        val actualizarInscriptosTrigger = remember { mutableStateOf(0) }
+
+        LaunchedEffect(carreraVisible, actualizarInscriptosTrigger.value) {
+            carreraVisible.id?.let { id ->
+                db.collection("carreras").document(id).collection("inscripciones")
+                    .get()
+                    .addOnSuccessListener { snapshot ->
+                        inscriptosActuales = snapshot.size()
+                    }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = if (tieneLimite) {
+                "Cupos disponibles: ${limite - inscriptosActuales} / $limite"
+            } else {
+                "Inscripción sin límite"
+            },
+            color = Color.LightGray,
+            fontSize = 14.sp
+        )
+
+        Button(
+            onClick = {
+                carreraVisible.id?.let { carreraId ->
+                    inscribirseViewModel.inscribirseACarrera(carreraId, userId) { success, mensaje ->
+                        mensajeInscripcion = mensaje
+                        if (success) {
+                            actualizarInscriptosTrigger.value++
+                        }
+                    }
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !tieneLimite || (limite - inscriptosActuales > 0)
+        ) {
+            Text("Inscribirme")
+        }
+
+        mensajeInscripcion?.let {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = it, color = Color.White)
+        }
+
         if (showConfirmDelete) {
             AlertDialog(
                 onDismissRequest = { showConfirmDelete = false },
@@ -154,13 +211,12 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
                 confirmButton = {
                     TextButton(onClick = {
                         showConfirmDelete = false
-                        // Eliminar de Firestore
                         carrera.id?.let { id ->
                             FirebaseFirestore.getInstance().collection("carreras")
                                 .document(id)
                                 .delete()
                                 .addOnSuccessListener {
-                                    navController.popBackStack() // volver después de eliminar
+                                    navController.popBackStack()
                                 }
                         }
                     }) {
@@ -176,5 +232,42 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
             )
         }
 
+        Spacer(modifier = Modifier.height(16.dp))
+
+        var carreraIniciada by remember { mutableStateOf(false) }
+
+        if (showConfigButton) {
+            Button(
+                onClick = {
+                    // Guardar en Firestore si querés persistir el inicio
+                    carreraVisible.id?.let { id ->
+                        db.collection("carreras").document(id)
+                            .update("isStarted", true)
+                            .addOnSuccessListener {
+                                carreraIniciada = true
+                            }
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp)
+            ) {
+                Text("Comenzar carrera")
+            }
+        }
+
+        if (carreraIniciada) {
+            Button(
+                onClick = {
+                    // Navegación a pantalla del mapa
+                    navController.navigate("CarreraMapa/${carreraVisible.id}")
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+            ) {
+                Text("Ver carrera")
+            }
+        }
     }
 }

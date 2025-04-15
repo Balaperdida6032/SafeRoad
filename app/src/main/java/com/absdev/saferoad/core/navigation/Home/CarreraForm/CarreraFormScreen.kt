@@ -36,6 +36,8 @@ fun CarreraFormScreen(navController: NavController) {
     var description by remember { mutableStateOf("") }
     var imageBase64 by remember { mutableStateOf<String?>(null) }
     var loading by remember { mutableStateOf(false) }
+    var hasLimit by remember { mutableStateOf(false) }
+    var limit by remember { mutableStateOf("") } // como texto, luego se convierte a Int
 
     val db = FirebaseFirestore.getInstance()
     val context = LocalContext.current
@@ -83,6 +85,23 @@ fun CarreraFormScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.height(12.dp))
 
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("¿Limitar corredores?", color = Color.White)
+            Switch(checked = hasLimit, onCheckedChange = { hasLimit = it })
+        }
+
+        if (hasLimit) {
+            Spacer(modifier = Modifier.height(12.dp))
+            TextField(
+                value = limit,
+                onValueChange = { limit = it },
+                label = { Text("Límite de corredores") },
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
         Button(onClick = { launcher.launch("image/*") }) {
             Text("Seleccionar imagen")
         }
@@ -112,7 +131,9 @@ fun CarreraFormScreen(navController: NavController) {
                     name = name,
                     description = description,
                     image = imageBase64.orEmpty(),
-                    userId = userId
+                    userId = userId,
+                    hasLimit = hasLimit,
+                    limit = if (hasLimit) limit.toIntOrNull() else null
                 )
 
                 db.collection("carreras").document(carreraId)
