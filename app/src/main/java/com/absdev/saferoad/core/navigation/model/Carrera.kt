@@ -10,6 +10,8 @@ data class Carrera (
     val userId:String? = null,
     val hasLimit: Boolean = false,
     val limit: Int? = null,
-    var isStarted: Boolean? = null
-): Serializable
+    var isStarted: Boolean? = null,
+    val ruta: List<HashMap<String, Double>>? = null
+) : Serializable
+
 

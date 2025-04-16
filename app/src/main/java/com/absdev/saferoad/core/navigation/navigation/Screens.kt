@@ -43,3 +43,7 @@ data class CarreraMapa(val carreraId: String)
 
 @Serializable
 data class ParticipanteCarreraStart(val carreraId: String)
+
+@Serializable
+data class DefinirRutaCarrera(val carreraId: String)
+

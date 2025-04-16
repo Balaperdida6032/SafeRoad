@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.absdev.saferoad.core.navigation.model.Carrera
 import com.absdev.saferoad.core.navigation.navigation.CarreraMapa
+import com.absdev.saferoad.core.navigation.navigation.DefinirRutaCarrera
 import com.absdev.saferoad.core.navigation.navigation.EditarCarrera
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -257,4 +258,51 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
         }
 
     }
+
+    if (showConfirmDelete) {
+        AlertDialog(
+            onDismissRequest = { showConfirmDelete = false },
+            title = {
+                Text("¿Eliminar carrera?", fontWeight = FontWeight.Bold)
+            },
+            text = {
+                Text("¿Estás seguro de que deseas eliminar esta carrera? Esta acción no se puede deshacer.")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        carreraVisible.id?.let { carreraId ->
+                            val carreraRef = db.collection("carreras").document(carreraId)
+                            val inscripcionesRef = carreraRef.collection("inscripciones")
+
+                            // 1. Eliminar todas las inscripciones
+                            inscripcionesRef.get().addOnSuccessListener { querySnapshot ->
+                                val batch = db.batch()
+                                for (document in querySnapshot.documents) {
+                                    batch.delete(document.reference)
+                                }
+
+                                // 2. Una vez que se eliminaron, eliminamos la carrera
+                                batch.commit().addOnSuccessListener {
+                                    carreraRef.delete().addOnSuccessListener {
+                                        navController.popBackStack() // Volver a la pantalla anterior
+                                    }
+                                }
+                            }
+                        }
+                        showConfirmDelete = false
+                    }
+                ) {
+                    Text("Eliminar", color = Color.Red)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showConfirmDelete = false }) {
+                    Text("Cancelar")
+                }
+            },
+            containerColor = Color.White
+        )
+    }
+
 }

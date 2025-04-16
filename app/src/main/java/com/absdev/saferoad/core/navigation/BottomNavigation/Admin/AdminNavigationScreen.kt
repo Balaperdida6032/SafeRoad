@@ -20,6 +20,7 @@ import androidx.navigation.compose.rememberNavController
 import com.absdev.saferoad.core.navigation.BottomNavigation.BottomNavItem
 import com.absdev.saferoad.core.navigation.Home.Admin.AdminHomeScreen.AdminHomeScreen
 import com.absdev.saferoad.core.navigation.Home.CarreraDetail.CarreraDetailScreen
+import com.absdev.saferoad.core.navigation.Home.CarreraDetail.DefinirRutaCarreraScreen
 import com.absdev.saferoad.core.navigation.Home.CarreraDetail.EditarCarreraScreen
 import com.absdev.saferoad.core.navigation.Home.CarreraForm.CarreraFormScreen
 import com.absdev.saferoad.core.navigation.Profile.Edit.EditarPerfilScreen
@@ -34,6 +35,7 @@ import java.lang.reflect.Modifier
 import com.absdev.saferoad.core.navigation.navigation.CarreraMapa
 import com.absdev.saferoad.core.navigation.maps.CarreraMapaScreen
 import com.absdev.saferoad.core.navigation.maps.ParticipanteCarreraStartScreen
+import com.absdev.saferoad.core.navigation.navigation.DefinirRutaCarrera
 import com.absdev.saferoad.core.navigation.navigation.ParticipanteCarreraStart
 
 
@@ -102,6 +104,11 @@ fun AdminNavigationScreen() {
                 ParticipanteCarreraStartScreen(
                     idCarrera = carreraId,
                     navController = navController)
+            }
+
+            composable<DefinirRutaCarrera> { backStackEntry ->
+                val carreraId = backStackEntry.arguments?.getString("carreraId") ?: return@composable
+                DefinirRutaCarreraScreen(carreraId = carreraId, navController = navController)
             }
 
         }

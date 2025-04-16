@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.absdev.saferoad.core.navigation.model.Carrera
+import com.absdev.saferoad.core.navigation.navigation.DefinirRutaCarrera
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import java.io.ByteArrayOutputStream
@@ -140,7 +141,7 @@ fun CarreraFormScreen(navController: NavController) {
                     .set(nuevaCarrera)
                     .addOnSuccessListener {
                         Log.i("Firestore", "Carrera creada con éxito")
-                        navController.popBackStack()
+                        navController.navigate(DefinirRutaCarrera(carreraId))
                     }
                     .addOnFailureListener {
                         Log.e("Firestore", "Error al crear carrera", it)
@@ -148,8 +149,7 @@ fun CarreraFormScreen(navController: NavController) {
                     .addOnCompleteListener {
                         loading = false
                     }
-            }
-            ,
+            },
             modifier = Modifier.fillMaxWidth(),
             enabled = !loading && !name.isBlank() && !description.isBlank() && !imageBase64.isNullOrEmpty()
         ) {

@@ -8,6 +8,7 @@ import com.absdev.saferoad.SplashScreen
 import com.absdev.saferoad.WelcomeScreen
 import com.absdev.saferoad.core.navigation.BottomNavigation.Admin.AdminNavigationScreen
 import com.absdev.saferoad.core.navigation.Home.CarreraDetail.CarreraDetailScreen
+import com.absdev.saferoad.core.navigation.Home.CarreraDetail.DefinirRutaCarreraScreen
 import com.absdev.saferoad.core.navigation.Home.CarreraDetail.EditarCarreraScreen
 import com.absdev.saferoad.core.navigation.Home.CarreraForm.CarreraFormScreen
 import com.absdev.saferoad.core.navigation.Home.CarreraForm.UploadImageScreen
@@ -134,6 +135,10 @@ fun NavigationWrapper(auth: FirebaseAuth) {
                     navController = navController)
             }
 
+            composable<DefinirRutaCarrera> { backStackEntry ->
+                val carreraId = backStackEntry.arguments?.getString("carreraId") ?: return@composable
+                DefinirRutaCarreraScreen(carreraId = carreraId, navController = navController)
+            }
 
         }
     }
