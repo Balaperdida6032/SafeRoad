@@ -10,23 +10,28 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.absdev.saferoad.core.navigation.navigation.CarreraDetailScreen
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
-import com.google.firebase.firestore.FirebaseFirestore
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import androidx.compose.ui.platform.LocalContext
+import com.absdev.saferoad.core.navigation.model.CalidadRed
+import com.absdev.saferoad.core.navigation.model.TrayectoConectividad
 
 @OptIn(ExperimentalPermissionsApi::class)
 @SuppressLint("MissingPermission")
 @Composable
 fun DefinirRutaCarreraScreen(carreraId: String, navController: NavController) {
-    val db = FirebaseFirestore.getInstance()
-    var puntosRuta by remember { mutableStateOf(listOf<LatLng>()) }
+    val context = LocalContext.current
+    var puntosRuta by remember { mutableStateOf(listOf<TrayectoConectividad>()) }
 
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(
-            LatLng(-30.9056, -55.5500), // Rivera
+            LatLng(-30.9056, -55.5500),
             15f
         )
     }
@@ -36,19 +41,28 @@ fun DefinirRutaCarreraScreen(carreraId: String, navController: NavController) {
             modifier = Modifier.weight(1f),
             cameraPositionState = cameraPositionState,
             onMapClick = { latLng ->
-                puntosRuta = puntosRuta + latLng
+                val calidad = obtenerCalidadRed(context)
+                puntosRuta = puntosRuta + TrayectoConectividad(latLng, calidad)
             }
         ) {
-            Polyline(
-                points = puntosRuta,
-                color = Color.Green,
-                width = 5f
-            )
+            puntosRuta.forEachIndexed { i, punto ->
+                if (i > 0) {
+                    val anterior = puntosRuta[i - 1]
+                    val color = when (anterior.calidadRed) {
+                        CalidadRed.BUENA -> Color.Green
+                        CalidadRed.MEDIA -> Color.Yellow
+                        CalidadRed.MALA -> Color.Red
+                    }
+                    Polyline(
+                        points = listOf(anterior.latLng, punto.latLng),
+                        color = color,
+                        width = 5f
+                    )
+                }
 
-            puntosRuta.forEach { point ->
                 Marker(
-                    state = MarkerState(position = point),
-                    title = "Punto"
+                    state = MarkerState(position = punto.latLng),
+                    title = "Punto ${i + 1}"
                 )
             }
         }
@@ -64,10 +78,8 @@ fun DefinirRutaCarreraScreen(carreraId: String, navController: NavController) {
             }
             Button(
                 onClick = {
-                    guardarRutaEnFirestore(carreraId, puntosRuta) {
-                        navController.popBackStack()
-                        navController.navigate(CarreraDetailScreen)
-                    }
+                    navController.previousBackStackEntry?.savedStateHandle?.set("rutaConCalidad", puntosRuta)
+                    navController.popBackStack()
                 },
                 enabled = puntosRuta.size > 1
             ) {
@@ -77,26 +89,20 @@ fun DefinirRutaCarreraScreen(carreraId: String, navController: NavController) {
     }
 }
 
-private fun guardarRutaEnFirestore(
-    carreraId: String,
-    ruta: List<LatLng>,
-    onSuccess: () -> Unit
-) {
-    val db = FirebaseFirestore.getInstance()
-    val rutaMapeada = ruta.map { punto ->
-        hashMapOf(
-            "lat" to punto.latitude,
-            "lng" to punto.longitude
-        )
-    }
 
-    db.collection("carreras").document(carreraId)
-        .update("ruta", rutaMapeada)
-        .addOnSuccessListener {
-            Log.i("Ruta", "Ruta guardada correctamente")
-            onSuccess()
+fun obtenerCalidadRed(context: Context): CalidadRed {
+    val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    val capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+
+    return when {
+        capabilities == null -> CalidadRed.MALA
+        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> CalidadRed.BUENA
+        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> {
+            if (capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) {
+                CalidadRed.MEDIA
+            } else CalidadRed.MALA
         }
-        .addOnFailureListener {
-            Log.e("Ruta", "Error al guardar ruta: ${it.message}")
-        }
+        else -> CalidadRed.MALA
+    }
 }
+

@@ -26,22 +26,28 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.absdev.saferoad.core.navigation.model.Carrera
+import com.absdev.saferoad.core.navigation.model.TrayectoConectividad
 import com.absdev.saferoad.core.navigation.navigation.DefinirRutaCarrera
+import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import java.io.ByteArrayOutputStream
 
 @Composable
 fun CarreraFormScreen(navController: NavController) {
-    var name by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var imageBase64 by remember { mutableStateOf<String?>(null) }
-    var loading by remember { mutableStateOf(false) }
-    var hasLimit by remember { mutableStateOf(false) }
-    var limit by remember { mutableStateOf("") } // como texto, luego se convierte a Int
-
     val db = FirebaseFirestore.getInstance()
     val context = LocalContext.current
+
+    val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
+
+    var name by remember { mutableStateOf(savedStateHandle?.get<String>("name") ?: "") }
+    var description by remember { mutableStateOf(savedStateHandle?.get<String>("description") ?: "") }
+    var imageBase64 by remember { mutableStateOf(savedStateHandle?.get<String>("imageBase64")) }
+    var loading by remember { mutableStateOf(false) }
+    var hasLimit by remember { mutableStateOf(savedStateHandle?.get<Boolean>("hasLimit") ?: false) }
+    var limit by remember { mutableStateOf(savedStateHandle?.get<String>("limit") ?: "") }
+    var rutaConCalidad by remember { mutableStateOf(savedStateHandle?.get<List<TrayectoConectividad>>("rutaConCalidad") ?: emptyList()) }
+
     var selectedUri by remember { mutableStateOf<Uri?>(null) }
 
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) {
@@ -119,6 +125,32 @@ fun CarreraFormScreen(navController: NavController) {
             }
         }
 
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // ...
+        Button(
+            onClick = {
+                savedStateHandle?.set("name", name)
+                savedStateHandle?.set("description", description)
+                savedStateHandle?.set("hasLimit", hasLimit)
+                savedStateHandle?.set("limit", limit)
+                savedStateHandle?.set("imageBase64", imageBase64)
+                savedStateHandle?.set("rutaConCalidad", rutaConCalidad) // ✅ CORRECTO
+
+                val tempId = "temp_id_${System.currentTimeMillis()}"
+                navController.navigate(DefinirRutaCarrera(tempId))
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Definir recorrido en el mapa")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (rutaConCalidad.isNotEmpty()) { // ✅ CORREGIDO
+            Text("Puntos del recorrido definidos: ${rutaConCalidad.size}", color = Color.Green)
+        }
+
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
@@ -134,14 +166,21 @@ fun CarreraFormScreen(navController: NavController) {
                     image = imageBase64.orEmpty(),
                     userId = userId,
                     hasLimit = hasLimit,
-                    limit = if (hasLimit) limit.toIntOrNull() else null
+                    limit = if (hasLimit) limit.toIntOrNull() else null,
+                    ruta = rutaConCalidad.map { punto ->
+                        mapOf(
+                            "lat" to punto.latLng.latitude,
+                            "lng" to punto.latLng.longitude,
+                            "calidad" to punto.calidadRed.name
+                        )
+                    }
                 )
 
                 db.collection("carreras").document(carreraId)
                     .set(nuevaCarrera)
                     .addOnSuccessListener {
                         Log.i("Firestore", "Carrera creada con éxito")
-                        navController.navigate(DefinirRutaCarrera(carreraId))
+                        navController.popBackStack()
                     }
                     .addOnFailureListener {
                         Log.e("Firestore", "Error al crear carrera", it)
@@ -151,14 +190,14 @@ fun CarreraFormScreen(navController: NavController) {
                     }
             },
             modifier = Modifier.fillMaxWidth(),
-            enabled = !loading && !name.isBlank() && !description.isBlank() && !imageBase64.isNullOrEmpty()
+            enabled = !loading && !name.isBlank() && !description.isBlank() && !imageBase64.isNullOrEmpty() && rutaConCalidad.isNotEmpty() // ✅ CORREGIDO
         ) {
             Text(text = if (loading) "Guardando..." else "Crear carrera")
         }
     }
 }
 
-fun encodeImageToBase64(context: Context, uri: Uri): String? {
+        fun encodeImageToBase64(context: Context, uri: Uri): String? {
     val bitmap: Bitmap = if (Build.VERSION.SDK_INT < 28) {
         MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
     } else {

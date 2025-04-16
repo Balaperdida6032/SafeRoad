@@ -5,6 +5,8 @@ import android.util.Base64
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Settings
@@ -20,9 +22,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.absdev.saferoad.core.navigation.model.Carrera
+import com.absdev.saferoad.core.navigation.model.CalidadRed
 import com.absdev.saferoad.core.navigation.navigation.CarreraMapa
-import com.absdev.saferoad.core.navigation.navigation.DefinirRutaCarrera
 import com.absdev.saferoad.core.navigation.navigation.EditarCarrera
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MapStyleOptions
+import com.google.maps.android.compose.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -50,7 +56,7 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
             val carreraDoc = carreraRef.get().await()
             val perfilDoc = perfilRef.get().await()
 
-            val isStarted = carreraDoc.getBoolean("isStarted") == true
+            val isStarted = carreraDoc.getBoolean("isStarted") ?: false
             val isAdmin = perfilDoc.getString("role") == "admin"
             val isCreator = carrera.userId == userId
             showConfigButton = isAdmin && isCreator
@@ -65,6 +71,7 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .background(Color.Black)
             .padding(16.dp)
     ) {
@@ -169,8 +176,6 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
         Text(
             text = if (tieneLimite) {
                 "Cupos disponibles: ${limite - inscriptosActuales} / $limite"
@@ -181,14 +186,88 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
             fontSize = 14.sp
         )
 
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (!carreraVisible.ruta.isNullOrEmpty()) {
+            val puntosRuta = carreraVisible.ruta!!.mapNotNull { punto ->
+                val lat = punto["lat"] as? Double
+                val lng = punto["lng"] as? Double
+                val calidadStr = punto["calidad"] as? String
+
+                if (lat != null && lng != null && calidadStr != null) {
+                    val calidad = when (calidadStr) {
+                        "BUENA" -> CalidadRed.BUENA
+                        "MEDIA" -> CalidadRed.MEDIA
+                        "MALA" -> CalidadRed.MALA
+                        else -> CalidadRed.MEDIA
+                    }
+                    Triple(LatLng(lat, lng), calidad, calidadStr)
+                } else null
+            }
+
+            if (puntosRuta.size >= 2) {
+                val cameraPositionState = rememberCameraPositionState {
+                    position = CameraPosition.fromLatLngZoom(puntosRuta.first().first, 15f)
+                }
+
+                val styleJson = """[
+                  {
+                    "featureType": "all",
+                    "elementType": "all",
+                    "stylers": [
+                      { "saturation": -100 },
+                      { "gamma": 0.8 },
+                      { "lightness": 10 },
+                      { "visibility": "simplified" }
+                    ]
+                  }
+                ]""".trimIndent()
+
+                val mapStyleOptions = remember { MapStyleOptions(styleJson) }
+
+                GoogleMap(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.dp),
+                    cameraPositionState = cameraPositionState,
+                    properties = MapProperties(mapStyleOptions = mapStyleOptions),
+                    uiSettings = MapUiSettings(
+                        zoomControlsEnabled = false,
+                        mapToolbarEnabled = false,
+                        myLocationButtonEnabled = false
+                    )
+                ) {
+                    for (i in 1 until puntosRuta.size) {
+                        val (p1, calidad, _) = puntosRuta[i - 1]
+                        val (p2, _, _) = puntosRuta[i]
+
+                        val color = when (calidad) {
+                            CalidadRed.BUENA -> Color.Green
+                            CalidadRed.MEDIA -> Color.Yellow
+                            CalidadRed.MALA -> Color.Red
+                        }
+
+                        Polyline(
+                            points = listOf(p1, p2),
+                            color = color,
+                            width = 6f
+                        )
+                    }
+
+                    Marker(state = MarkerState(position = puntosRuta.first().first), title = "Inicio")
+                    Marker(state = MarkerState(position = puntosRuta.last().first), title = "Fin")
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         Button(
             onClick = {
                 carreraVisible.id?.let { carreraId ->
                     inscribirseViewModel.inscribirseACarrera(carreraId, userId) { success, mensaje ->
                         mensajeInscripcion = mensaje
-                        if (success) {
-                            actualizarInscriptosTrigger.value++
-                        }
+                        if (success) actualizarInscriptosTrigger.value++
                     }
                 }
             },
@@ -216,9 +295,10 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 16.dp)
+                    .padding(top = 8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Green)
             ) {
-                Text("Comenzar carrera")
+                Text("Comenzar carrera", color = Color.White)
             }
         }
 
@@ -256,7 +336,6 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
                 Text("Finalizar carrera", color = Color.White)
             }
         }
-
     }
 
     if (showConfirmDelete) {
@@ -275,17 +354,15 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
                             val carreraRef = db.collection("carreras").document(carreraId)
                             val inscripcionesRef = carreraRef.collection("inscripciones")
 
-                            // 1. Eliminar todas las inscripciones
                             inscripcionesRef.get().addOnSuccessListener { querySnapshot ->
                                 val batch = db.batch()
                                 for (document in querySnapshot.documents) {
                                     batch.delete(document.reference)
                                 }
 
-                                // 2. Una vez que se eliminaron, eliminamos la carrera
                                 batch.commit().addOnSuccessListener {
                                     carreraRef.delete().addOnSuccessListener {
-                                        navController.popBackStack() // Volver a la pantalla anterior
+                                        navController.popBackStack()
                                     }
                                 }
                             }
@@ -304,5 +381,4 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
             containerColor = Color.White
         )
     }
-
 }

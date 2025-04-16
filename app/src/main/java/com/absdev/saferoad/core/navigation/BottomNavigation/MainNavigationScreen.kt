@@ -18,6 +18,7 @@ import com.absdev.saferoad.core.navigation.BottomNavigation.BottomNavItem
 import com.absdev.saferoad.core.navigation.Home.CarreraDetail.CarreraDetailScreen
 import com.absdev.saferoad.core.navigation.HomeScreen.HomeScreen
 import com.absdev.saferoad.core.navigation.Profile.ProfileScreen
+import com.absdev.saferoad.core.navigation.maps.CarreraMapaScreen
 import com.absdev.saferoad.core.navigation.maps.ParticipanteCarreraStartScreen
 import com.absdev.saferoad.core.navigation.model.Carrera
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
@@ -26,6 +27,8 @@ import com.google.firebase.ktx.Firebase
 @Composable
 fun MainNavigationScreen() {
     val navController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
 
     val systemUiController = rememberSystemUiController()
     SideEffect {
@@ -37,7 +40,9 @@ fun MainNavigationScreen() {
 
     Scaffold(
         bottomBar = {
-            BottomBar(navController = navController)
+            if (currentRoute?.startsWith("ParticipanteCarreraStartScreen") != true) {
+                BottomBar(navController = navController)
+            }
         }
     ) { padding ->
         NavHost(
@@ -50,6 +55,11 @@ fun MainNavigationScreen() {
             }
             composable(BottomNavItem.Profile.route) {
                 ProfileScreen(navController)
+            }
+
+            composable<CarreraMapa> { backStackEntry ->
+                val carreraId = backStackEntry.arguments?.getString("carreraId") ?: return@composable
+                CarreraMapaScreen(idCarrera = carreraId)
             }
 
             composable<CarreraDetailScreen> {

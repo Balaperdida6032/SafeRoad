@@ -45,6 +45,7 @@ fun AdminNavigationScreen() {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     val systemUiController = rememberSystemUiController()
+
     SideEffect {
         systemUiController.setSystemBarsColor(
             color = Color.Black,
@@ -54,7 +55,10 @@ fun AdminNavigationScreen() {
 
     Scaffold(
         bottomBar = {
-            if (currentRoute != CarreraForm::class.qualifiedName) {
+            if (
+                currentRoute != CarreraForm::class.qualifiedName &&
+                currentRoute?.startsWith("ParticipanteCarreraStart") != true
+            ) {
                 AdminBottomBar(navController = navController)
             }
         }
