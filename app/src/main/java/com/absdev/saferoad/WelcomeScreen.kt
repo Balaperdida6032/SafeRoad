@@ -63,7 +63,7 @@ fun WelcomeScreen(navigateToLogin:() -> Unit = {}, navigateToSign:() -> Unit = {
                 .border(2.dp, ShapeButton, CircleShape),
             colors = ButtonDefaults.buttonColors(containerColor = GreenLogo)
             ) {
-            Text(text = "Log In", color = White)
+            Text(text = "Iniciar sesión", color = White)
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -77,7 +77,7 @@ fun WelcomeScreen(navigateToLogin:() -> Unit = {}, navigateToSign:() -> Unit = {
                 .border(2.dp, ShapeButton, CircleShape),
             colors = ButtonDefaults.buttonColors(containerColor = Black)
         ) {
-            Text(text = "Sign Up free", color = White)
+            Text(text = "Registrarse", color = White)
         }
 
         Spacer(modifier = Modifier.height(12.dp))

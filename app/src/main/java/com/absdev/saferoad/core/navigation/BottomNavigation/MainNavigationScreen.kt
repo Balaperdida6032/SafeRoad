@@ -17,6 +17,7 @@ import androidx.navigation.compose.*
 import com.absdev.saferoad.core.navigation.BottomNavigation.BottomNavItem
 import com.absdev.saferoad.core.navigation.Home.CarreraDetail.CarreraDetailScreen
 import com.absdev.saferoad.core.navigation.HomeScreen.HomeScreen
+import com.absdev.saferoad.core.navigation.Profile.Edit.EditarPerfilScreen
 import com.absdev.saferoad.core.navigation.Profile.ProfileScreen
 import com.absdev.saferoad.core.navigation.maps.CarreraMapaScreen
 import com.absdev.saferoad.core.navigation.maps.ParticipanteCarreraStartScreen
@@ -60,6 +61,10 @@ fun MainNavigationScreen() {
             composable<CarreraMapa> { backStackEntry ->
                 val carreraId = backStackEntry.arguments?.getString("carreraId") ?: return@composable
                 CarreraMapaScreen(idCarrera = carreraId)
+            }
+
+            composable<EditarPerfil> {
+                EditarPerfilScreen(navController)
             }
 
             composable<CarreraDetailScreen> {

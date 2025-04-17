@@ -1,7 +1,9 @@
 package com.absdev.saferoad.core.navigation.Profile
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Settings
@@ -19,6 +21,8 @@ import androidx.compose.ui.unit.dp
 import com.absdev.saferoad.core.navigation.navigation.EditarPerfil
 import com.google.firebase.firestore.FirebaseFirestore
 import com.absdev.saferoad.core.navigation.BottomNavigation.Admin.AdminBottomNavItem
+import com.absdev.saferoad.ui.theme.GreenLogo
+import com.absdev.saferoad.ui.theme.ShapeButton
 import com.google.firebase.auth.EmailAuthProvider
 
 @Composable
@@ -128,7 +132,12 @@ fun ProfileScreen(
                 auth.signOut()
                 currentUser = null
             },
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                .padding(horizontal = 32.dp)
+                .border(2.dp, ShapeButton, CircleShape),
+            colors = ButtonDefaults.buttonColors(containerColor = GreenLogo)
         ) {
             Icon(Icons.Default.ExitToApp, contentDescription = "Logout")
             Spacer(modifier = Modifier.width(8.dp))
