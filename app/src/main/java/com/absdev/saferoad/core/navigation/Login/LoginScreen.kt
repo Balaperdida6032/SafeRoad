@@ -91,7 +91,6 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            //Campo de Email
             TextField(
                 value = email,
                 onValueChange = { email = it },
@@ -102,7 +101,6 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            //Campo de Password
             TextField(
                 value = password,
                 onValueChange = { password = it },

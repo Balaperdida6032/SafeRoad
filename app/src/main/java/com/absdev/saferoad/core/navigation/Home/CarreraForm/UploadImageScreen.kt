@@ -24,7 +24,7 @@ fun UploadImageScreen() {
 
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) {
         selectedUri = it
-        base64Image = it?.let { uri -> encodeImageToBase64(context, uri) } // Usa la función de CarreraFormScreen
+        base64Image = it?.let { uri -> encodeImageToBase64(context, uri) }
     }
 
     Column(Modifier.padding(16.dp)) {

@@ -129,7 +129,7 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
                                 modifier = Modifier.fillMaxSize(),
                                 contentScale = ContentScale.Crop
                             )
-                            // Degradado negro desde abajo hacia arriba
+
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
@@ -307,17 +307,6 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
 
         }
 
-
-       /* Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = carreraVisible.name.orEmpty(),
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.White,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )*/
-
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
@@ -353,7 +342,6 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
                 fontSize = 14.sp
             )
         }
-
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -395,8 +383,9 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
                 Text("Ver carrera", color = Color.White)
             }
         }
-
     }
+
+    Spacer(modifier = Modifier.height(16.dp))
 
     if (showConfirmDelete) {
         AlertDialog(

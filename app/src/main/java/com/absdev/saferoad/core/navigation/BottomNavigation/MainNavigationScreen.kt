@@ -23,6 +23,7 @@ import com.absdev.saferoad.core.navigation.maps.CarreraMapaScreen
 import com.absdev.saferoad.core.navigation.maps.ParticipanteCarreraStartScreen
 import com.absdev.saferoad.core.navigation.model.Carrera
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.ktx.Firebase
 
 @Composable
@@ -35,7 +36,7 @@ fun MainNavigationScreen() {
     SideEffect {
         systemUiController.setSystemBarsColor(
             color = Color.Black,
-            darkIcons = true // esto es clave para que los íconos sean blancos
+            darkIcons = true
         )
     }
 
@@ -55,7 +56,13 @@ fun MainNavigationScreen() {
                 HomeScreen(navController)
             }
             composable(BottomNavItem.Profile.route) {
-                ProfileScreen(navController)
+                ProfileScreen(navController = navController,
+                    onLogout = {
+                        FirebaseAuth.getInstance().signOut()
+                        navController.navigate(Welcome) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    })
             }
 
             composable<CarreraMapa> { backStackEntry ->
@@ -81,7 +88,6 @@ fun MainNavigationScreen() {
                     navController = navController // si lo necesita
                 )
             }
-
         }
     }
 }

@@ -91,8 +91,17 @@ fun NavigationWrapper(auth: FirebaseAuth) {
             }
 
             composable<Profile> {
-                ProfileScreen(navController)
+                ProfileScreen(
+                    navController = navController,
+                    onLogout = {
+                        auth.signOut()
+                        navController.navigate(Welcome) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
+                )
             }
+
 
             composable<CarreraForm> {
                 CarreraFormScreen(navController)

@@ -55,7 +55,7 @@ fun ParticipanteCarreraStartScreen(
             val latLng = LatLng(location.latitude, location.longitude)
             userLocation = latLng
 
-            // 🔍 Obtener nombre desde Firestore
+            // agarra nombre desde Firestore
             FirebaseFirestore.getInstance().collection("profile").document(userId)
                 .get()
                 .addOnSuccessListener { doc ->
@@ -65,7 +65,7 @@ fun ParticipanteCarreraStartScreen(
                         "lat" to location.latitude,
                         "lng" to location.longitude,
                         "timestamp" to System.currentTimeMillis(),
-                        "nombre" to nombre // ✅ se guarda el nombre aquí
+                        "nombre" to nombre
                     )
 
                     db.child("carreras").child(idCarrera).child("corredores").child(userId)
@@ -82,7 +82,7 @@ fun ParticipanteCarreraStartScreen(
 
     val locationPermissionState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
 
-    // 🔁 Escuchar en tiempo real si se finalizó la carrera
+    // tiempo real si se finalizó la carrera
     LaunchedEffect(idCarrera) {
         firestore.collection("carreras").document(idCarrera)
             .addSnapshotListener { snapshot, error ->
@@ -97,10 +97,10 @@ fun ParticipanteCarreraStartScreen(
             locationPermissionState.launchPermissionRequest()
         } else {
             val doc = firestore.collection("carreras").document(idCarrera).get().await()
-            val puntos = doc.get("ruta") as? List<Map<String, Double>>
+            val puntos = doc.get("ruta") as? List<Map<String, Any>>
             ruta = puntos?.mapNotNull {
-                val lat = it["lat"]
-                val lng = it["lng"]
+                val lat = it["lat"] as? Double
+                val lng = it["lng"] as? Double
                 if (lat != null && lng != null) LatLng(lat, lng) else null
             } ?: emptyList()
         }
@@ -165,7 +165,7 @@ fun ParticipanteCarreraStartScreen(
                 Text("Progreso: ${(progreso * 100).roundToInt()}%", color = Color.White)
             }
 
-            // Mostrar botón para salir si la carrera finalizó
+            //boton para salir si la carrera finalizó
             if (carreraFinalizada) {
                 Spacer(modifier = Modifier.height(32.dp))
                 Text("La carrera ha finalizado", color = Color.Red)
@@ -191,7 +191,7 @@ fun calcularDistanciaTotal(ruta: List<LatLng>): Float {
         Location.distanceBetween(start.latitude, start.longitude, end.latitude, end.longitude, result)
         total += result[0]
     }
-    return total / 1000f // en km
+    return total / 1000f //en km
 }
 
 fun calcularProgreso(actual: LatLng?, ruta: List<LatLng>): Float {

@@ -17,6 +17,7 @@ import com.absdev.saferoad.core.navigation.navigation.Welcome
 import com.google.firebase.auth.FirebaseAuth
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.absdev.saferoad.core.navigation.navigation.EditarPerfil
 import com.google.firebase.firestore.FirebaseFirestore
@@ -28,7 +29,8 @@ import com.google.firebase.auth.EmailAuthProvider
 @Composable
 fun ProfileScreen(
     navController: NavHostController,
-    viewModel: ProfileViewModel = viewModel()
+    viewModel: ProfileViewModel = viewModel(),
+    onLogout: () -> Unit
 ) {
     val profileState = viewModel.profile.collectAsState()
     val auth = FirebaseAuth.getInstance()
@@ -129,8 +131,7 @@ fun ProfileScreen(
 
         Button(
             onClick = {
-                auth.signOut()
-                currentUser = null
+                onLogout()
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -145,52 +146,84 @@ fun ProfileScreen(
         }
     }
 
-    // AlertDialog de confirmación para eliminar cuenta
     if (showConfirmDelete) {
+        var passwordInput by remember { mutableStateOf("") }
+        var isDeleting by remember { mutableStateOf(false) }
+        var errorMessage by remember { mutableStateOf<String?>(null) }
+
         AlertDialog(
-            onDismissRequest = { showConfirmDelete = false },
+            onDismissRequest = {
+                showConfirmDelete = false
+                passwordInput = ""
+                errorMessage = null
+            },
             title = { Text("¿Eliminar cuenta?", color = Color.White) },
-            text = { Text("Esta acción eliminará tu perfil de forma permanente.", color = Color.White) },
+            text = {
+                Column {
+                    Text("Esta acción eliminará tu perfil de forma permanente.", color = Color.White)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = passwordInput,
+                        onValueChange = {
+                            passwordInput = it
+                            errorMessage = null
+                        },
+                        label = { Text("Contraseña") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        visualTransformation = PasswordVisualTransformation()
+                    )
+                    if (errorMessage != null) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(errorMessage.orEmpty(), color = Color.Red)
+                    }
+                }
+            },
             confirmButton = {
-                TextButton(onClick = {
-                    showConfirmDelete = false
-
-                    val user = auth.currentUser
-                    val email = user?.email.orEmpty()
-
-                    // 🔐 Pedimos una contraseña temporal — esto deberías cambiarlo por un input real
-                    val password = "123456" // ¡Pedirla al usuario con un TextField sería lo ideal!
-
-                    val credential = EmailAuthProvider.getCredential(email, password)
-
-                    user?.reauthenticate(credential)
-                        ?.addOnSuccessListener {
-                            // ✅ Reautenticación correcta, eliminar perfil
-                            val userId = user.uid
-                            FirebaseFirestore.getInstance().collection("profile").document(userId).delete()
-                                .addOnSuccessListener {
-                                    user.delete()
-                                        .addOnSuccessListener {
-                                            auth.signOut()
-                                            currentUser = null
-                                        }
-                                }
+                TextButton(
+                    onClick = {
+                        if (passwordInput.isBlank()) {
+                            errorMessage = "La contraseña no puede estar vacía"
+                            return@TextButton
                         }
-                        ?.addOnFailureListener {
-                            // Mostrar error si la reautenticación falla
-                            println("❌ Reautenticación fallida: ${it.message}")
-                        }
-                }) {
+
+                        isDeleting = true
+                        val user = auth.currentUser
+                        val email = user?.email.orEmpty()
+                        val credential = EmailAuthProvider.getCredential(email, passwordInput)
+
+                        user?.reauthenticate(credential)
+                            ?.addOnSuccessListener {
+                                val userId = user.uid
+                                FirebaseFirestore.getInstance().collection("profile").document(userId).delete()
+                                    .addOnSuccessListener {
+                                        user.delete()
+                                            .addOnSuccessListener {
+                                                onLogout()
+                                            }
+                                    }
+                            }
+                            ?.addOnFailureListener {
+                                errorMessage = "❌ Contraseña incorrecta"
+                                isDeleting = false
+                            }
+                    },
+                    enabled = !isDeleting
+                ) {
                     Text("Eliminar", color = Color.Red)
                 }
-
             },
             dismissButton = {
-                TextButton(onClick = { showConfirmDelete = false }) {
+                TextButton(onClick = {
+                    showConfirmDelete = false
+                    passwordInput = ""
+                    errorMessage = null
+                }) {
                     Text("Cancelar", color = Color.White)
                 }
             },
             containerColor = Color.DarkGray
         )
     }
+
 }

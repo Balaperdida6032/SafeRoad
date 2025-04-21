@@ -72,7 +72,6 @@ fun CarreraMapaScreen(idCarrera: String) {
                 corredores = nuevos
                 Log.d("MapaScreen", "Corredores recibidos: ${corredores.size}")
             }
-
             override fun onCancelled(error: DatabaseError) {
                 Log.e("MapaScreen", "Error al leer corredores: ${error.message}")
             }
@@ -133,7 +132,6 @@ fun CarreraMapaScreen(idCarrera: String) {
     val mapStyleOptions = remember { MapStyleOptions(styleJson) }
 
     Column {
-        // Barra superior
         TopAppBar(
             title = {
                 if (showSearch) {
@@ -175,7 +173,7 @@ fun CarreraMapaScreen(idCarrera: String) {
             )
         )
 
-        // Cuerpo del mapa
+        //mapa
         Box(modifier = Modifier.fillMaxSize()) {
             GoogleMap(
                 modifier = Modifier.fillMaxSize(),
@@ -209,7 +207,7 @@ fun CarreraMapaScreen(idCarrera: String) {
                     Marker(state = MarkerState(position = rutaCarrera.last().first), title = "Fin")
                 }
 
-                // Filtrar corredores por nombre
+                // filtra corredores por nombre
                 val corredoresFiltrados = corredores.filter {
                     it.value.nombre.contains(searchQuery, ignoreCase = true)
                 }

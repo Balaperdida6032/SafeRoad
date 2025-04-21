@@ -80,7 +80,6 @@ fun AdminHomeScreen(
                 }
 
             }
-
             Spacer(modifier = Modifier.weight(1f))
         }
 
@@ -113,11 +112,12 @@ fun CarreraItem(carrera: Carrera, onClick: () -> Unit) {
         elevation = CardDefaults.cardElevation(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Black)
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
             val imageBitmap = remember(carrera.image) {
                 decodeBase64ToImage(carrera.image ?: "")
             }
-
             if (imageBitmap != null) {
                 Image(
                     bitmap = imageBitmap,

@@ -37,7 +37,8 @@ import com.absdev.saferoad.core.navigation.maps.CarreraMapaScreen
 import com.absdev.saferoad.core.navigation.maps.ParticipanteCarreraStartScreen
 import com.absdev.saferoad.core.navigation.navigation.DefinirRutaCarrera
 import com.absdev.saferoad.core.navigation.navigation.ParticipanteCarreraStart
-
+import com.absdev.saferoad.core.navigation.navigation.Welcome
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun AdminNavigationScreen() {
@@ -49,7 +50,7 @@ fun AdminNavigationScreen() {
     SideEffect {
         systemUiController.setSystemBarsColor(
             color = Color.Black,
-            darkIcons = true // esto es clave para que los íconos sean blancos
+            darkIcons = true
         )
     }
 
@@ -72,7 +73,16 @@ fun AdminNavigationScreen() {
                 AdminHomeScreen(navController)
             }
             composable(AdminBottomNavItem.Profile.route) {
-                ProfileScreen(navController)
+                ProfileScreen(
+                    navController = navController,
+                    onLogout = {
+                        FirebaseAuth.getInstance().signOut()
+                        navController.navigate(Welcome) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
+                )
+
             }
             composable(CarreraForm::class.qualifiedName!!) {
                 CarreraFormScreen(navController)

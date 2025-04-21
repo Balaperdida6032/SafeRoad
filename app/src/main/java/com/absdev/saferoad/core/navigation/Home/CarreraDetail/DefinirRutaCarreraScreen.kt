@@ -92,7 +92,6 @@ fun DefinirRutaCarreraScreen(carreraId: String, navController: NavController) {
     }
 }
 
-
 fun obtenerCalidadRed(context: Context): CalidadRed {
     val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
     val capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
