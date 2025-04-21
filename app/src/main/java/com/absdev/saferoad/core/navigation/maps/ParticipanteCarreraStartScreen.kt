@@ -54,18 +54,27 @@ fun ParticipanteCarreraStartScreen(
             val latLng = LatLng(location.latitude, location.longitude)
             userLocation = latLng
 
-            val userLocMap = mapOf(
-                "lat" to location.latitude,
-                "lng" to location.longitude,
-                "timestamp" to System.currentTimeMillis()
-            )
-            db.child("carreras").child(idCarrera).child("corredores").child(userId)
-                .setValue(userLocMap)
-                .addOnSuccessListener {
-                    Log.d("Participante", "Ubicación enviada con éxito")
-                }
-                .addOnFailureListener {
-                    Log.e("Participante", "Error al enviar ubicación: ${it.message}")
+            // 🔍 Obtener nombre desde Firestore
+            FirebaseFirestore.getInstance().collection("profile").document(userId)
+                .get()
+                .addOnSuccessListener { doc ->
+                    val nombre = doc.getString("name") ?: "Corredor"
+
+                    val userLocMap = mapOf(
+                        "lat" to location.latitude,
+                        "lng" to location.longitude,
+                        "timestamp" to System.currentTimeMillis(),
+                        "nombre" to nombre // ✅ se guarda el nombre aquí
+                    )
+
+                    db.child("carreras").child(idCarrera).child("corredores").child(userId)
+                        .setValue(userLocMap)
+                        .addOnSuccessListener {
+                            Log.d("Participante", "Ubicación y nombre enviados con éxito")
+                        }
+                        .addOnFailureListener {
+                            Log.e("Participante", "Error al enviar datos: ${it.message}")
+                        }
                 }
         }
     })

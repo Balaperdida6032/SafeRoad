@@ -1,11 +1,28 @@
 package com.absdev.saferoad.core.navigation.maps
 
 import android.util.Log
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import com.absdev.saferoad.core.navigation.model.CalidadRed
 import com.absdev.saferoad.core.navigation.model.CorredorInfo
 import com.google.android.gms.maps.model.*
@@ -15,6 +32,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import kotlin.random.Random
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CarreraMapaScreen(idCarrera: String) {
     val context = LocalContext.current
@@ -24,6 +42,9 @@ fun CarreraMapaScreen(idCarrera: String) {
     val coloresCorredores = remember { mutableStateMapOf<String, BitmapDescriptor>() }
     var puntoInicialCarrera by remember { mutableStateOf<LatLng?>(null) }
     var rutaCarrera by remember { mutableStateOf<List<Triple<LatLng, CalidadRed, String>>>(emptyList()) }
+
+    var showSearch by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
 
     val dbRef = FirebaseDatabase.getInstance().reference
         .child("carreras")
@@ -111,44 +132,97 @@ fun CarreraMapaScreen(idCarrera: String) {
 
     val mapStyleOptions = remember { MapStyleOptions(styleJson) }
 
-    GoogleMap(
-        modifier = Modifier.fillMaxSize(),
-        cameraPositionState = cameraPositionState,
-        properties = MapProperties(mapStyleOptions = mapStyleOptions),
-        uiSettings = MapUiSettings(
-            zoomControlsEnabled = false,
-            mapToolbarEnabled = false,
-            myLocationButtonEnabled = false
+    Column {
+        // Barra superior
+        TopAppBar(
+            title = {
+                if (showSearch) {
+                    TextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        placeholder = { Text("Buscar corredor...") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                } else {
+                    Text("Carrera", color = Color.White)
+                }
+            },
+            navigationIcon = {
+                IconButton(onClick = {
+                    (context as? androidx.activity.ComponentActivity)?.onBackPressedDispatcher?.onBackPressed()
+                }) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = Color.White)
+                }
+            },
+            actions = {
+                if (showSearch) {
+                    IconButton(onClick = {
+                        searchQuery = ""
+                        showSearch = false
+                    }) {
+                        Icon(Icons.Default.Close, contentDescription = "Cerrar búsqueda", tint = Color.White)
+                    }
+                } else {
+                    IconButton(onClick = { showSearch = true }) {
+                        Icon(Icons.Default.Search, contentDescription = "Buscar", tint = Color.White)
+                    }
+                }
+            }
+            ,
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = Color.Black
+            )
         )
-    ) {
-        if (rutaCarrera.size >= 2) {
-            for (i in 1 until rutaCarrera.size) {
-                val (p1, calidad, _) = rutaCarrera[i - 1]
-                val (p2, _, _) = rutaCarrera[i]
 
-                val color = when (calidad) {
-                    CalidadRed.BUENA -> Color.Green
-                    CalidadRed.MEDIA -> Color.Yellow
-                    CalidadRed.MALA -> Color.Red
+        // Cuerpo del mapa
+        Box(modifier = Modifier.fillMaxSize()) {
+            GoogleMap(
+                modifier = Modifier.fillMaxSize(),
+                cameraPositionState = cameraPositionState,
+                properties = MapProperties(mapStyleOptions = mapStyleOptions),
+                uiSettings = MapUiSettings(
+                    zoomControlsEnabled = false,
+                    mapToolbarEnabled = false,
+                    myLocationButtonEnabled = false
+                )
+            ) {
+                if (rutaCarrera.size >= 2) {
+                    for (i in 1 until rutaCarrera.size) {
+                        val (p1, calidad, _) = rutaCarrera[i - 1]
+                        val (p2, _, _) = rutaCarrera[i]
+
+                        val color = when (calidad) {
+                            CalidadRed.BUENA -> Color.Green
+                            CalidadRed.MEDIA -> Color.Yellow
+                            CalidadRed.MALA -> Color.Red
+                        }
+
+                        Polyline(
+                            points = listOf(p1, p2),
+                            color = color,
+                            width = 6f
+                        )
+                    }
+
+                    Marker(state = MarkerState(position = rutaCarrera.first().first), title = "Inicio")
+                    Marker(state = MarkerState(position = rutaCarrera.last().first), title = "Fin")
                 }
 
-                Polyline(
-                    points = listOf(p1, p2),
-                    color = color,
-                    width = 6f
-                )
+                // Filtrar corredores por nombre
+                val corredoresFiltrados = corredores.filter {
+                    it.value.nombre.contains(searchQuery, ignoreCase = true)
+                }
+
+                corredoresFiltrados.forEach { (uid, info) ->
+                    Marker(
+                        state = MarkerState(position = info.latLng),
+                        title = info.nombre,
+                        icon = coloresCorredores[uid]
+                    )
+                }
             }
-
-            Marker(state = MarkerState(position = rutaCarrera.first().first), title = "Inicio")
-            Marker(state = MarkerState(position = rutaCarrera.last().first), title = "Fin")
-        }
-
-        corredores.forEach { (uid, info) ->
-            Marker(
-                state = MarkerState(position = info.latLng),
-                title = info.nombre,
-                icon = coloresCorredores[uid]
-            )
         }
     }
+
 }

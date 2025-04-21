@@ -32,12 +32,14 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import java.io.ByteArrayOutputStream
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 
 @Composable
 fun CarreraFormScreen(navController: NavController) {
     val db = FirebaseFirestore.getInstance()
     val context = LocalContext.current
-
+    val scrollState = rememberScrollState()
     val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
 
     var name by remember { mutableStateOf(savedStateHandle?.get<String>("name") ?: "") }
@@ -59,7 +61,8 @@ fun CarreraFormScreen(navController: NavController) {
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
-            .padding(16.dp),
+            .padding(16.dp)
+            .verticalScroll(scrollState), // ✅ Activar scroll
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         IconButton(onClick = { navController.popBackStack() },
@@ -127,7 +130,6 @@ fun CarreraFormScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // ...
         Button(
             onClick = {
                 savedStateHandle?.set("name", name)
@@ -135,7 +137,7 @@ fun CarreraFormScreen(navController: NavController) {
                 savedStateHandle?.set("hasLimit", hasLimit)
                 savedStateHandle?.set("limit", limit)
                 savedStateHandle?.set("imageBase64", imageBase64)
-                savedStateHandle?.set("rutaConCalidad", rutaConCalidad) // ✅ CORRECTO
+                savedStateHandle?.set("rutaConCalidad", rutaConCalidad)
 
                 val tempId = "temp_id_${System.currentTimeMillis()}"
                 navController.navigate(DefinirRutaCarrera(tempId))
@@ -147,7 +149,7 @@ fun CarreraFormScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        if (rutaConCalidad.isNotEmpty()) { // ✅ CORREGIDO
+        if (rutaConCalidad.isNotEmpty()) {
             Text("Puntos del recorrido definidos: ${rutaConCalidad.size}", color = Color.Green)
         }
 
@@ -190,14 +192,14 @@ fun CarreraFormScreen(navController: NavController) {
                     }
             },
             modifier = Modifier.fillMaxWidth(),
-            enabled = !loading && !name.isBlank() && !description.isBlank() && !imageBase64.isNullOrEmpty() && rutaConCalidad.isNotEmpty() // ✅ CORREGIDO
+            enabled = !loading && !name.isBlank() && !description.isBlank() && !imageBase64.isNullOrEmpty() && rutaConCalidad.isNotEmpty()
         ) {
             Text(text = if (loading) "Guardando..." else "Crear carrera")
         }
     }
 }
 
-        fun encodeImageToBase64(context: Context, uri: Uri): String? {
+fun encodeImageToBase64(context: Context, uri: Uri): String? {
     val bitmap: Bitmap = if (Build.VERSION.SDK_INT < 28) {
         MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
     } else {
