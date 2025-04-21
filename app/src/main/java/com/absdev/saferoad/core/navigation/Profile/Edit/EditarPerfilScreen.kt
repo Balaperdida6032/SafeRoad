@@ -11,6 +11,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.absdev.saferoad.core.navigation.model.Profile
+import com.absdev.saferoad.ui.theme.GreenLogo
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -56,6 +57,8 @@ fun EditarPerfilScreen(navController: NavController) {
                 value = name,
                 onValueChange = { name = it },
                 label = { Text("Nombre") },
+                singleLine = true,
+                maxLines = 1,
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -65,6 +68,8 @@ fun EditarPerfilScreen(navController: NavController) {
                 value = age,
                 onValueChange = { age = it },
                 label = { Text("Edad") },
+                singleLine = true,
+                maxLines = 1,
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -84,9 +89,10 @@ fun EditarPerfilScreen(navController: NavController) {
                             }
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = GreenLogo)
             ) {
-                Text("Guardar")
+                Text("Guardar", color = Color.White)
             }
         }
     }

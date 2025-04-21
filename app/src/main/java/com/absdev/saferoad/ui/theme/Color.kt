@@ -11,5 +11,6 @@ val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
 
 val GreenLogo = Color(0xFF4CAF50)
+val RedDetener = Color(0xFFF44336)
 val ShapeButton = Color(0xFF3e3e3e)
 val Black = Color(0xFF121212)

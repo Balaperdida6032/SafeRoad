@@ -18,9 +18,11 @@ import com.google.maps.android.compose.*
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.ui.platform.LocalContext
 import com.absdev.saferoad.core.navigation.model.CalidadRed
 import com.absdev.saferoad.core.navigation.model.TrayectoConectividad
+import com.absdev.saferoad.ui.theme.GreenLogo
 
 @OptIn(ExperimentalPermissionsApi::class)
 @SuppressLint("MissingPermission")
@@ -81,9 +83,10 @@ fun DefinirRutaCarreraScreen(carreraId: String, navController: NavController) {
                     navController.previousBackStackEntry?.savedStateHandle?.set("rutaConCalidad", puntosRuta)
                     navController.popBackStack()
                 },
+                colors = ButtonDefaults.buttonColors(containerColor = GreenLogo),
                 enabled = puntosRuta.size > 1
             ) {
-                Text("Guardar recorrido")
+                Text("Guardar recorrido", color = Color.White)
             }
         }
     }

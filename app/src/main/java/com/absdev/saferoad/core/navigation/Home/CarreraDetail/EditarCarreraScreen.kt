@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.absdev.saferoad.core.navigation.model.Carrera
+import com.absdev.saferoad.ui.theme.GreenLogo
 import com.google.firebase.firestore.FirebaseFirestore
 import java.io.ByteArrayOutputStream
 
@@ -58,6 +59,8 @@ fun EditarCarreraScreen(carrera: Carrera, navController: NavController) {
             value = name,
             onValueChange = { name = it },
             label = { Text("Nombre") },
+            singleLine = true,
+            maxLines = 1,
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -67,13 +70,16 @@ fun EditarCarreraScreen(carrera: Carrera, navController: NavController) {
             value = description,
             onValueChange = { description = it },
             label = { Text("Descripción") },
+            singleLine = true,
+            maxLines = 1,
             modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        Button(onClick = { launcher.launch("image/*") }) {
-            Text("Seleccionar nueva imagen")
+        Button(onClick = { launcher.launch("image/*") },
+            colors = ButtonDefaults.buttonColors(containerColor = GreenLogo)) {
+            Text("Seleccionar nueva imagen", color = Color.White)
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -103,9 +109,10 @@ fun EditarCarreraScreen(carrera: Carrera, navController: NavController) {
                         navController.popBackStack()
                     }
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(containerColor = GreenLogo)
         ) {
-            Text("Guardar cambios")
+            Text("Guardar cambios",color = Color.White)
         }
     }
 }

@@ -69,14 +69,16 @@ fun NavigationWrapper(auth: FirebaseAuth) {
             composable<Sign> {
                 SingScreen(
                     auth,
-                    navController)
+                    navController
+                )
             }
 
             composable<Login> {
                 LoginScreen(
                     auth,
                     navigateToHome = { navController.navigate(Home) },
-                    navigateToAdminHome = { navController.navigate(AdminHome) }
+                    navigateToAdminHome = { navController.navigate(AdminHome) },
+                    navController
                 )
             }
 

@@ -91,7 +91,9 @@ fun SingScreen(auth: FirebaseAuth, navController: NavController) {
             TextField(
                 value = name,
                 onValueChange = { name = it },
-                label = { Text("Name") }
+                label = { Text("Name") },
+                singleLine = true,
+                maxLines = 1
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -104,6 +106,8 @@ fun SingScreen(auth: FirebaseAuth, navController: NavController) {
                     }
                 },
                 label = { Text("Age") },
+                singleLine = true,
+                maxLines = 1,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
 
@@ -112,7 +116,9 @@ fun SingScreen(auth: FirebaseAuth, navController: NavController) {
             TextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("Email") }
+                label = { Text("Email") },
+                singleLine = true,
+                maxLines = 1
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -121,6 +127,8 @@ fun SingScreen(auth: FirebaseAuth, navController: NavController) {
                 value = password,
                 onValueChange = { password = it },
                 label = { Text("Password") },
+                singleLine = true,
+                maxLines = 1,
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
@@ -138,37 +146,43 @@ fun SingScreen(auth: FirebaseAuth, navController: NavController) {
 
             Button(
                 onClick = {
-                    auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener { task ->
-                        if (task.isSuccessful) {
-                            val userId = task.result?.user?.uid
-                            val profile = Profile(
-                                uid = userId,
-                                name = name,
-                                age = age.toIntOrNull(),
-                                email = email,
-                                password = password,
-                                role = "user"
-                            )
+                    if (name.isBlank() || age.isBlank() || email.isBlank() || password.isBlank()) {
+                        scope.launch {
+                            snackbarHostState.showSnackbar("Por favor, completa todos los campos ❗")
+                        }
+                    } else {
+                        auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                val userId = task.result?.user?.uid
+                                val profile = Profile(
+                                    uid = userId,
+                                    name = name,
+                                    age = age.toIntOrNull(),
+                                    email = email,
+                                    password = password,
+                                    role = "user"
+                                )
 
-                            if (userId != null) {
-                                FirebaseFirestore.getInstance()
-                                    .collection("profile")
-                                    .document(userId)
-                                    .set(profile)
-                                    .addOnSuccessListener {
-                                        Log.d("Firestore", "Perfil guardado con éxito")
-                                    }
-                                    .addOnFailureListener {
-                                        Log.e("Firestore", "Error al guardar perfil", it)
-                                    }
-                            }
+                                if (userId != null) {
+                                    FirebaseFirestore.getInstance()
+                                        .collection("profile")
+                                        .document(userId)
+                                        .set(profile)
+                                        .addOnSuccessListener {
+                                            Log.d("Firestore", "Perfil guardado con éxito")
+                                        }
+                                        .addOnFailureListener {
+                                            Log.e("Firestore", "Error al guardar perfil", it)
+                                        }
+                                }
 
-                            scope.launch {
-                                snackbarHostState.showSnackbar("Usuario registrado correctamente ✅")
-                            }
-                        } else {
-                            scope.launch {
-                                snackbarHostState.showSnackbar("Error al registrar el usuario ❌")
+                                scope.launch {
+                                    snackbarHostState.showSnackbar("Usuario registrado correctamente ✅")
+                                }
+                            } else {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar("Error al registrar el usuario ❌")
+                                }
                             }
                         }
                     }

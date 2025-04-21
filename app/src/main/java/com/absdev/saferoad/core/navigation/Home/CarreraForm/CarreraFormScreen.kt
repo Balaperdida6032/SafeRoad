@@ -34,6 +34,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import java.io.ByteArrayOutputStream
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import com.absdev.saferoad.ui.theme.GreenLogo
 
 @Composable
 fun CarreraFormScreen(navController: NavController) {
@@ -62,7 +63,7 @@ fun CarreraFormScreen(navController: NavController) {
             .fillMaxSize()
             .background(Color.Black)
             .padding(16.dp)
-            .verticalScroll(scrollState), // ✅ Activar scroll
+            .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         IconButton(onClick = { navController.popBackStack() },
@@ -81,6 +82,8 @@ fun CarreraFormScreen(navController: NavController) {
             value = name,
             onValueChange = { name = it },
             label = { Text("Nombre") },
+            singleLine = true,
+            maxLines = 1,
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -90,6 +93,8 @@ fun CarreraFormScreen(navController: NavController) {
             value = description,
             onValueChange = { description = it },
             label = { Text("Descripción") },
+            singleLine = true,
+            maxLines = 1,
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -106,14 +111,17 @@ fun CarreraFormScreen(navController: NavController) {
                 value = limit,
                 onValueChange = { limit = it },
                 label = { Text("Límite de corredores") },
+                singleLine = true,
+                maxLines = 1,
                 modifier = Modifier.fillMaxWidth()
             )
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        Button(onClick = { launcher.launch("image/*") }) {
-            Text("Seleccionar imagen")
+        Button(onClick = { launcher.launch("image/*") },
+            colors = ButtonDefaults.buttonColors(containerColor = GreenLogo)) {
+            Text("Seleccionar imagen", color = Color.White)
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -142,9 +150,10 @@ fun CarreraFormScreen(navController: NavController) {
                 val tempId = "temp_id_${System.currentTimeMillis()}"
                 navController.navigate(DefinirRutaCarrera(tempId))
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(containerColor = GreenLogo)
         ) {
-            Text("Definir recorrido en el mapa")
+            Text("Definir recorrido en el mapa", color = Color.White)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -192,9 +201,10 @@ fun CarreraFormScreen(navController: NavController) {
                     }
             },
             modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(containerColor = GreenLogo),
             enabled = !loading && !name.isBlank() && !description.isBlank() && !imageBase64.isNullOrEmpty() && rutaConCalidad.isNotEmpty()
         ) {
-            Text(text = if (loading) "Guardando..." else "Crear carrera")
+            Text(text = if (loading) "Guardando..." else "Crear carrera", color = Color.White)
         }
     }
 }

@@ -16,6 +16,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.navigation.NavController
+import com.absdev.saferoad.ui.theme.GreenLogo
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -117,8 +118,10 @@ fun ParticipanteCarreraStartScreen(
                 } else {
                     locationPermissionState.launchPermissionRequest()
                 }
-            }) {
-                Text("Comenzar carrera")
+            },
+                colors = ButtonDefaults.buttonColors(containerColor = GreenLogo)
+            ) {
+                Text("Comenzar carrera",color = Color.White)
             }
 
             if (!locationPermissionState.status.isGranted) {
@@ -127,7 +130,8 @@ fun ParticipanteCarreraStartScreen(
             }
 
         } else {
-            Text("¡Tu ubicación se está enviando!", color = Color.White)
+            Text("¡ES TU MOMENOT DE GANAR, CORREDOR!", color = Color.White)
+            Text("¡Tu ubicación se está compartiendo!", color = Color.Gray)
 
             LaunchedEffect(Unit) {
                 if (ActivityCompat.checkSelfPermission(
