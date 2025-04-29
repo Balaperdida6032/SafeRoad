@@ -34,6 +34,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import java.io.ByteArrayOutputStream
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.unit.sp
 import com.absdev.saferoad.ui.theme.GreenLogo
 
 @Composable
@@ -93,9 +94,11 @@ fun CarreraFormScreen(navController: NavController) {
             value = description,
             onValueChange = { description = it },
             label = { Text("Descripción") },
-            singleLine = true,
-            maxLines = 1,
-            modifier = Modifier.fillMaxWidth()
+            maxLines = 5, // permite varias líneas
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(150.dp),
+            textStyle = LocalTextStyle.current.copy(lineHeight = 20.sp)
         )
 
         Spacer(modifier = Modifier.height(12.dp))

@@ -111,7 +111,7 @@ fun ProfileScreen(
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
-            profile.age?.let {
+            profile.birthDate?.let {
                 Text(text = "Edad: $it")
                 Spacer(modifier = Modifier.height(8.dp))
             }

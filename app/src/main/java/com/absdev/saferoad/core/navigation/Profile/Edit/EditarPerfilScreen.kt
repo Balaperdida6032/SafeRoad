@@ -2,6 +2,8 @@ package com.absdev.saferoad.core.navigation.Profile.Edit
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -14,6 +16,9 @@ import com.absdev.saferoad.core.navigation.model.Profile
 import com.absdev.saferoad.ui.theme.GreenLogo
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 @Composable
 fun EditarPerfilScreen(navController: NavController) {
@@ -22,9 +27,10 @@ fun EditarPerfilScreen(navController: NavController) {
     val userId = auth.currentUser?.uid
 
     var name by remember { mutableStateOf("") }
-    var age by remember { mutableStateOf("") }
-
+    var birthDate by remember { mutableStateOf("") }
     var loading by remember { mutableStateOf(true) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         userId?.let {
@@ -32,68 +38,112 @@ fun EditarPerfilScreen(navController: NavController) {
                 .addOnSuccessListener { doc ->
                     val perfil = doc.toObject(Profile::class.java)
                     name = perfil?.name.orEmpty()
-                    age = perfil?.age?.toString().orEmpty()
+                    birthDate = perfil?.birthDate.orEmpty()
                     loading = false
                 }
         }
     }
 
-    if (loading) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(color = Color.White)
-        }
-    } else {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black)
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text("Editar perfil", fontSize = 24.sp, color = Color.White)
-            Spacer(modifier = Modifier.height(24.dp))
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { padding ->
+        if (loading) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = Color.White)
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black)
+                    .padding(padding)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.TopStart
+                ) {
+                    IconButton(
+                        onClick = { navController.popBackStack() }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Atrás",
+                            tint = Color.White
+                        )
+                    }
+                }
 
-            TextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Nombre") },
-                singleLine = true,
-                maxLines = 1,
-                modifier = Modifier.fillMaxWidth()
-            )
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text("Editar perfil", fontSize = 24.sp, color = Color.White)
+                    Spacer(modifier = Modifier.height(24.dp))
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            TextField(
-                value = age,
-                onValueChange = { age = it },
-                label = { Text("Edad") },
-                singleLine = true,
-                maxLines = 1,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Button(
-                onClick = {
-                    val data = mapOf(
-                        "name" to name,
-                        "age" to age.toIntOrNull()
+                    TextField(
+                        value = name,
+                        onValueChange = { name = it },
+                        label = { Text("Nombre") },
+                        singleLine = true,
+                        maxLines = 1,
+                        modifier = Modifier.fillMaxWidth()
                     )
 
-                    userId?.let {
-                        db.collection("profile").document(it).update(data)
-                            .addOnSuccessListener {
-                                navController.popBackStack()
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    TextField(
+                        value = birthDate,
+                        onValueChange = { birthDate = it },
+                        label = { Text("Fecha de nacimiento (dd/MM/yyyy)") },
+                        singleLine = true,
+                        maxLines = 1,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Button(
+                        onClick = {
+                            if (!isValidDate(birthDate)) {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar("Fecha inválida. Usa el formato dd/MM/yyyy ❗")
+                                }
+                            } else {
+                                val data = mapOf(
+                                    "name" to name,
+                                    "birthDate" to birthDate
+                                )
+                                userId?.let {
+                                    db.collection("profile").document(it).update(data)
+                                        .addOnSuccessListener {
+                                            navController.popBackStack()
+                                        }
+                                }
                             }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = GreenLogo)
+                    ) {
+                        Text("Guardar", color = Color.White)
                     }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = GreenLogo)
-            ) {
-                Text("Guardar", color = Color.White)
+                }
             }
         }
+    }
+}
+
+// Reutilizamos el mismo validador:
+fun isValidDate(dateStr: String): Boolean {
+    return try {
+        val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        sdf.isLenient = false
+        sdf.parse(dateStr)
+        true
+    } catch (e: Exception) {
+        false
     }
 }

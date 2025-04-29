@@ -13,6 +13,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -51,7 +53,24 @@ fun EditarCarreraScreen(carrera: Carrera, navController: NavController) {
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Editar carrera", color = Color.White, fontSize = 24.sp)
+
+        // CABECERA: flecha + texto
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = { navController.popBackStack() }) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "Volver",
+                    tint = Color.White
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Editar carrera", color = Color.White, fontSize = 24.sp)
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -70,15 +89,19 @@ fun EditarCarreraScreen(carrera: Carrera, navController: NavController) {
             value = description,
             onValueChange = { description = it },
             label = { Text("Descripción") },
-            singleLine = true,
-            maxLines = 1,
-            modifier = Modifier.fillMaxWidth()
+            maxLines = 5, // permite varias líneas
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(150.dp),
+            textStyle = LocalTextStyle.current.copy(lineHeight = 20.sp)
         )
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        Button(onClick = { launcher.launch("image/*") },
-            colors = ButtonDefaults.buttonColors(containerColor = GreenLogo)) {
+        Button(
+            onClick = { launcher.launch("image/*") },
+            colors = ButtonDefaults.buttonColors(containerColor = GreenLogo)
+        ) {
             Text("Seleccionar nueva imagen", color = Color.White)
         }
 
@@ -90,7 +113,11 @@ fun EditarCarreraScreen(carrera: Carrera, navController: NavController) {
             }
 
             imageBitmap?.let { bitmap ->
-                Image(bitmap = bitmap, contentDescription = null, modifier = Modifier.size(200.dp))
+                Image(
+                    bitmap = bitmap,
+                    contentDescription = null,
+                    modifier = Modifier.size(200.dp)
+                )
             }
         }
 
@@ -112,7 +139,7 @@ fun EditarCarreraScreen(carrera: Carrera, navController: NavController) {
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = GreenLogo)
         ) {
-            Text("Guardar cambios",color = Color.White)
+            Text("Guardar cambios", color = Color.White)
         }
     }
 }
