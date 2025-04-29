@@ -116,7 +116,7 @@ fun CarreraFormScreen(navController: NavController) {
                 modifier = Modifier.fillMaxWidth()
             )
         }
-
+        //kughuygjygyt
         Spacer(modifier = Modifier.height(12.dp))
 
         Button(onClick = { launcher.launch("image/*") },
