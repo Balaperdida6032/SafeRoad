@@ -13,6 +13,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -110,295 +111,311 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = Color.Black
     ) { padding ->
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black)
-            .verticalScroll(rememberScrollState())
-    ) {
-        val listState = rememberLazyListState()
-
-        Box(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(screenHeight * 0.5f)
+                .fillMaxSize()
+                .background(Color.Black)
+                .verticalScroll(rememberScrollState())
         ) {
-            LazyRow(
-                state = listState,
-                modifier = Modifier.fillMaxSize()
-            ) {
-                item {
-                    imageBitmap?.let {
-                        Box(
-                            modifier = Modifier
-                                .fillParentMaxHeight()
-                                .width(LocalConfiguration.current.screenWidthDp.dp)
-                        ) {
-                            Image(
-                                bitmap = it,
-                                contentDescription = null,
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
+            val listState = rememberLazyListState()
 
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(
-                                        Brush.verticalGradient(
-                                            colors = listOf(
-                                                Color.Black.copy(alpha = 0.8f),
-                                                Color.Transparent
-                                            ),
-                                            startY = Float.POSITIVE_INFINITY,
-                                            endY = 0f
-                                        )
-                                    )
-                            )
-                        }
-                    }
-                }
-
-                item {
-                    val puntosRuta = carreraVisible.ruta?.mapNotNull { punto ->
-                        val lat = punto["lat"] as? Double
-                        val lng = punto["lng"] as? Double
-                        val calidadStr = punto["calidad"] as? String
-                        if (lat != null && lng != null && calidadStr != null) {
-                            val calidad = when (calidadStr) {
-                                "BUENA" -> CalidadRed.BUENA
-                                "MEDIA" -> CalidadRed.MEDIA
-                                "MALA" -> CalidadRed.MALA
-                                else -> CalidadRed.MEDIA
-                            }
-                            Triple(LatLng(lat, lng), calidad, calidadStr)
-                        } else null
-                    } ?: emptyList()
-
-                    if (puntosRuta.size >= 2) {
-                        val cameraPositionState = rememberCameraPositionState {
-                            position = CameraPosition.fromLatLngZoom(puntosRuta.first().first, 15f)
-                        }
-
-                        val mapStyleOptions = remember {
-                            MapStyleOptions(
-                                """[{"featureType":"all","elementType":"all","stylers":[{"saturation":-100},{"gamma":0.8},{"lightness":10},{"visibility":"simplified"}]}]"""
-                            )
-                        }
-
-                        GoogleMap(
-                            modifier = Modifier
-                                .fillParentMaxHeight()
-                                .width(LocalConfiguration.current.screenWidthDp.dp),
-                            cameraPositionState = cameraPositionState,
-                            properties = MapProperties(mapStyleOptions = mapStyleOptions),
-                            uiSettings = MapUiSettings(
-                                zoomControlsEnabled = false,
-                                mapToolbarEnabled = false,
-                                myLocationButtonEnabled = false
-                            )
-                        ) {
-                            for (i in 1 until puntosRuta.size) {
-                                val (p1, calidad, _) = puntosRuta[i - 1]
-                                val (p2, _, _) = puntosRuta[i]
-                                val color = when (calidad) {
-                                    CalidadRed.BUENA -> Color.Green
-                                    CalidadRed.MEDIA -> Color.Yellow
-                                    CalidadRed.MALA -> Color.Red
-                                }
-                                Polyline(points = listOf(p1, p2), color = color, width = 6f)
-                            }
-
-                            Marker(state = MarkerState(puntosRuta.first().first), title = "Inicio")
-                            Marker(state = MarkerState(puntosRuta.last().first), title = "Fin")
-                        }
-                    }
-                }
-            }
-
-            if (listState.firstVisibleItemIndex == 0) {
-                Text(
-                    text = carreraVisible.name.orEmpty(),
-                    color = Color.White,
-                    fontSize = 50.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .padding(16.dp)
-                )
-            }
-
-            Row(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 16.dp)
-                    .align(Alignment.TopCenter),
-                verticalAlignment = Alignment.CenterVertically
+                    .height(screenHeight * 0.5f)
             ) {
-                IconButton(
-                    onClick = { navController.popBackStack() },
-                    modifier = Modifier
-                        .background(Color.Black.copy(alpha = 0.3f), shape = CircleShape)
-                        .size(40.dp)
+                LazyRow(
+                    state = listState,
+                    modifier = Modifier.fillMaxSize()
                 ) {
+                    item {
+                        imageBitmap?.let {
+                            Box(
+                                modifier = Modifier
+                                    .fillParentMaxHeight()
+                                    .width(LocalConfiguration.current.screenWidthDp.dp)
+                            ) {
+                                Image(
+                                    bitmap = it,
+                                    contentDescription = null,
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(
+                                            Brush.verticalGradient(
+                                                colors = listOf(
+                                                    Color.Black.copy(alpha = 0.8f),
+                                                    Color.Transparent
+                                                ),
+                                                startY = Float.POSITIVE_INFINITY,
+                                                endY = 0f
+                                            )
+                                        )
+                                )
+                            }
+                        }
+                    }
+
+                    item {
+                        val puntosRuta = carreraVisible.ruta?.mapNotNull { punto ->
+                            val lat = punto["lat"] as? Double
+                            val lng = punto["lng"] as? Double
+                            val calidadStr = punto["calidad"] as? String
+                            if (lat != null && lng != null && calidadStr != null) {
+                                val calidad = when (calidadStr) {
+                                    "BUENA" -> CalidadRed.BUENA
+                                    "MEDIA" -> CalidadRed.MEDIA
+                                    "MALA" -> CalidadRed.MALA
+                                    else -> CalidadRed.MEDIA
+                                }
+                                Triple(LatLng(lat, lng), calidad, calidadStr)
+                            } else null
+                        } ?: emptyList()
+
+                        if (puntosRuta.size >= 2) {
+                            val cameraPositionState = rememberCameraPositionState {
+                                position = CameraPosition.fromLatLngZoom(puntosRuta.first().first, 15f)
+                            }
+
+                            val mapStyleOptions = remember {
+                                MapStyleOptions(
+                                    """[{"featureType":"all","elementType":"all","stylers":[{"saturation":-100},{"gamma":0.8},{"lightness":10},{"visibility":"simplified"}]}]"""
+                                )
+                            }
+
+                            GoogleMap(
+                                modifier = Modifier
+                                    .fillParentMaxHeight()
+                                    .width(LocalConfiguration.current.screenWidthDp.dp),
+                                cameraPositionState = cameraPositionState,
+                                properties = MapProperties(mapStyleOptions = mapStyleOptions),
+                                uiSettings = MapUiSettings(
+                                    zoomControlsEnabled = false,
+                                    mapToolbarEnabled = false,
+                                    myLocationButtonEnabled = false
+                                )
+                            ) {
+                                for (i in 1 until puntosRuta.size) {
+                                    val (p1, calidad, _) = puntosRuta[i - 1]
+                                    val (p2, _, _) = puntosRuta[i]
+                                    val color = when (calidad) {
+                                        CalidadRed.BUENA -> Color.Green
+                                        CalidadRed.MEDIA -> Color.Yellow
+                                        CalidadRed.MALA -> Color.Red
+                                    }
+                                    Polyline(points = listOf(p1, p2), color = color, width = 6f)
+                                }
+
+                                Marker(state = MarkerState(puntosRuta.first().first), title = "Inicio")
+                                Marker(state = MarkerState(puntosRuta.last().first), title = "Fin")
+                            }
+                        }
+                    }
+                }
+
+
+                if (listState.firstVisibleItemIndex == 0) {
                     Icon(
-                        Icons.Default.ArrowBack,
-                        contentDescription = "Volver",
-                        tint = Color.White
+                        imageVector = Icons.Default.ArrowForward,
+                        contentDescription = "Deslizar para ver mapa",
+                        tint = Color.White.copy(alpha = 0.5f),
+                        modifier = Modifier
+                            .align(Alignment.CenterEnd)
+                            .padding(end = 16.dp)
+                            .size(36.dp)
+                    )
+
+                    Text(
+                        text = carreraVisible.name.orEmpty(),
+                        color = Color.White,
+                        fontSize = 50.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .padding(16.dp)
                     )
                 }
 
-                Spacer(modifier = Modifier.weight(1f))
 
-                if (showConfigButton) {
-                    val buttonColor = if (!carreraIniciada) GreenLogo else RedDetener
-                    val buttonText = if (!carreraIniciada) "Iniciar" else "Detener"
-
-                    Button(
-                        onClick = {
-                            carreraVisible.id?.let { id ->
-                                db.collection("carreras").document(id)
-                                    .update("isStarted", !carreraIniciada)
-                                    .addOnSuccessListener {
-                                        carreraIniciada = !carreraIniciada
-                                    }
-                            }
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
-                        modifier = Modifier.height(36.dp)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 16.dp)
+                        .align(Alignment.TopCenter),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(
+                        onClick = { navController.popBackStack() },
+                        modifier = Modifier
+                            .background(Color.Black.copy(alpha = 0.3f), shape = CircleShape)
+                            .size(40.dp)
                     ) {
-                        Text(buttonText, color = Color.White)
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = "Volver",
+                            tint = Color.White
+                        )
                     }
-                }
 
-                Spacer(modifier = Modifier.weight(1f))
+                    Spacer(modifier = Modifier.weight(1f))
 
-                if (showConfigButton) {
-                    Box {
-                        IconButton(
-                            onClick = { showMenu = true },
-                            modifier = Modifier
-                                .background(Color.Black.copy(alpha = 0.3f), shape = CircleShape)
-                                .size(40.dp)
+                    if (showConfigButton) {
+                        val buttonColor = if (!carreraIniciada) GreenLogo else RedDetener
+                        val buttonText = if (!carreraIniciada) "Iniciar" else "Detener"
+
+                        Button(
+                            onClick = {
+                                carreraVisible.id?.let { id ->
+                                    db.collection("carreras").document(id)
+                                        .update("isStarted", !carreraIniciada)
+                                        .addOnSuccessListener {
+                                            carreraIniciada = !carreraIniciada
+                                        }
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
+                            modifier = Modifier.height(36.dp)
                         ) {
-                            Icon(
-                                Icons.Default.Settings,
-                                contentDescription = "Configuración",
-                                tint = Color.White
-                            )
+                            Text(buttonText, color = Color.White)
                         }
+                    }
 
-                        DropdownMenu(
-                            expanded = showMenu,
-                            onDismissRequest = { showMenu = false }
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("Editar") },
-                                onClick = {
-                                    showMenu = false
-                                    navController.currentBackStackEntry?.savedStateHandle?.set("carrera", carreraVisible)
-                                    navController.navigate(EditarCarrera)
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Eliminar carrera", color = Color.Red) },
-                                onClick = {
-                                    showMenu = false
-                                    showConfirmDelete = true
-                                }
-                            )
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    if (showConfigButton) {
+                        Box {
+                            IconButton(
+                                onClick = { showMenu = true },
+                                modifier = Modifier
+                                    .background(Color.Black.copy(alpha = 0.3f), shape = CircleShape)
+                                    .size(40.dp)
+                            ) {
+                                Icon(
+                                    Icons.Default.Settings,
+                                    contentDescription = "Configuración",
+                                    tint = Color.White
+                                )
+                            }
+
+                            DropdownMenu(
+                                expanded = showMenu,
+                                onDismissRequest = { showMenu = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("Editar") },
+                                    onClick = {
+                                        showMenu = false
+                                        navController.currentBackStackEntry?.savedStateHandle?.set("carrera", carreraVisible)
+                                        navController.navigate(EditarCarrera)
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Eliminar carrera", color = Color.Red) },
+                                    onClick = {
+                                        showMenu = false
+                                        showConfirmDelete = true
+                                    }
+                                )
+                            }
                         }
                     }
                 }
             }
-        }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = carreraVisible.description.orEmpty(),
-            color = Color.White,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .padding(horizontal = 16.dp)
-                .padding(bottom = 4.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = "Icono cupos",
-                tint = Color.LightGray,
-                modifier = Modifier.size(18.dp)
-            )
-
-            Spacer(modifier = Modifier.width(6.dp))
-
-            Text(
-                text = if (tieneLimite) "$inscriptosActuales / $limite" else "Sin límite",
-                color = Color.LightGray,
-                fontSize = 14.sp
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        val scope = rememberCoroutineScope()
-        Button(
-            onClick = {
-                if (isUserInscripto) {
-                    scope.launch {
-                        snackbarHostState.showSnackbar("Ya estás inscripto en esta carrera ✅")
-                    }
-                } else {
-                    carreraVisible.id?.let { carreraId ->
-                        inscribirseViewModel.inscribirseACarrera(carreraId, userId) { success, mensaje ->
-                            mensajeInscripcion = mensaje
-                            if (success) {
-                                actualizarInscriptosTrigger.value++
-                                isUserInscripto = true
-                            }
-                        }
-                    }
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = GreenLogo),
-            enabled = (!tieneLimite || (limite - inscriptosActuales > 0)) || isUserInscripto
-        ) {
-            Text(
-                text = if (isUserInscripto) "Ya estás inscripto" else "Inscribirme",
-                color = Color.White
-            )
-        }
-
-        mensajeInscripcion?.let {
             Spacer(modifier = Modifier.height(8.dp))
-            Text(text = it, color = Color.White, modifier = Modifier.padding(horizontal = 16.dp))
-        }
 
-        if (carreraIniciada) {
+            Text(
+                text = carreraVisible.description.orEmpty(),
+                color = Color.White,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 4.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Icono cupos",
+                    tint = Color.LightGray,
+                    modifier = Modifier.size(18.dp)
+                )
+
+                Spacer(modifier = Modifier.width(6.dp))
+
+                Text(
+                    text = if (tieneLimite) "$inscriptosActuales / $limite" else "Sin límite",
+                    color = Color.LightGray,
+                    fontSize = 14.sp
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            val scope = rememberCoroutineScope()
             Button(
                 onClick = {
-                    carreraVisible.id?.let {
-                        navController.navigate(CarreraMapa(it))
+                    if (isUserInscripto) {
+                        scope.launch {
+                            snackbarHostState.showSnackbar("Ya estás inscripto en esta carrera ✅")
+                        }
+                    } else {
+                        carreraVisible.id?.let { carreraId ->
+                            inscribirseViewModel.inscribirseACarrera(carreraId, userId) { success, mensaje ->
+                                mensajeInscripcion = mensaje
+                                if (success) {
+
+                                    FirebaseFirestore.getInstance().collection("profile").document(userId)
+                                        .update("carreraActiva", carreraId)
+
+                                    actualizarInscriptosTrigger.value++
+                                    isUserInscripto = true
+                                }
+                            }
+                        }
                     }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = GreenLogo)
+                    .padding(horizontal = 16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = GreenLogo),
+                enabled = (!tieneLimite || (limite - inscriptosActuales > 0)) || isUserInscripto
             ) {
-                Text("Ver carrera", color = Color.White)
+                Text(
+                    text = if (isUserInscripto) "Ya estás inscripto" else "Inscribirme",
+                    color = Color.White
+                )
+            }
+
+            mensajeInscripcion?.let {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(text = it, color = Color.White, modifier = Modifier.padding(horizontal = 16.dp))
+            }
+
+            if (carreraIniciada) {
+                Button(
+                    onClick = {
+                        carreraVisible.id?.let {
+                            navController.navigate(CarreraMapa(it))
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = GreenLogo)
+                ) {
+                    Text("Ver carrera", color = Color.White)
+                }
             }
         }
-    }
     }
 
     Spacer(modifier = Modifier.height(16.dp))

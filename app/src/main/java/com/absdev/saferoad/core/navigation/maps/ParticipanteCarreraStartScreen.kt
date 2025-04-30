@@ -5,6 +5,8 @@ import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Looper
+import android.content.Intent
+import android.os.Build
 import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -120,6 +122,14 @@ fun ParticipanteCarreraStartScreen(
                 if (locationPermissionState.status.isGranted) {
                     carreraIniciada = true
                     startTime = System.currentTimeMillis()
+
+                    val intent = Intent(context, com.absdev.saferoad.core.navigation.maps.LocationService::class.java)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        context.startForegroundService(intent)
+                    } else {
+                        context.startService(intent)
+                    }
+
                 } else {
                     locationPermissionState.launchPermissionRequest()
                 }
@@ -187,6 +197,10 @@ fun ParticipanteCarreraStartScreen(
                 Text("La carrera ha finalizado", color = Color.Red)
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(onClick = {
+
+                    val intent = Intent(context, com.absdev.saferoad.core.navigation.maps.LocationService::class.java)
+                    context.stopService(intent)
+
                     navController.navigate("Home") {
                         popUpTo("Home") { inclusive = true }
                     }
