@@ -180,7 +180,7 @@ fun ParticipanteCarreraStartScreen(
                 Text("Progreso: ${(progreso * 100).roundToInt()}%", color = Color.White)
             }
 
-            //boton para salir si la carrera finalizó
+            //boton para salir si la carrera finalizo
             if (carreraFinalizada) {
                 if (endTime == null) endTime = System.currentTimeMillis()
                 val tiempoTotal = ((endTime ?: 0L) - (startTime ?: 0L)) / 1000
@@ -317,7 +317,6 @@ fun calcularDistanciaRestante(actual: LatLng?, ruta: List<LatLng>): Float {
         }
     }
 
-    // Desde el punto más cercano hasta el final
     val puntoInicio = proyectarPuntoSobreSegmento(actual, ruta[desdeIndex], ruta[desdeIndex + 1])
     val tempRuta = listOf(puntoInicio) + ruta.subList(desdeIndex + 1, ruta.size)
     return calcularDistanciaTotal(tempRuta)

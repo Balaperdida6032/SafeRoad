@@ -240,7 +240,6 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
                     )
                 }
 
-
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()

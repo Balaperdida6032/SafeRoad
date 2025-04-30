@@ -150,7 +150,7 @@ fun NavigationWrapper(auth: FirebaseAuth) {
                 val carreraId = backStackEntry.arguments?.getString("carreraId") ?: return@composable
                 DefinirRutaCarreraScreen(carreraId = carreraId, navController = navController)
             }
-
+            //fin :)
         }
     }
 }
