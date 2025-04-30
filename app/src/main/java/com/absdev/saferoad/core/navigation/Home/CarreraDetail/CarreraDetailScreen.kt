@@ -39,6 +39,7 @@ import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.maps.android.compose.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 @Composable
@@ -53,6 +54,7 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
     val inscribirseViewModel = remember { InscribirseViewModel() }
     val userId = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
     var mensajeInscripcion by remember { mutableStateOf<String?>(null) }
+    val snackbarHostState = remember { SnackbarHostState() }
 
     val carreraVisible = carreraActualizada ?: carrera
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
@@ -61,10 +63,9 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
         try {
             val imageBytes = Base64.decode(base64, Base64.DEFAULT)
             BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)?.asImageBitmap()
-        } catch (e: Exception) {
-            null
-        }
+        } catch (e: Exception) { null }
     }
+    var isUserInscripto by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return@LaunchedEffect
@@ -83,6 +84,12 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
 
             carreraActualizada = carreraDoc.toObject(Carrera::class.java)
             carreraIniciada = isStarted
+
+            val inscripcionesSnapshot = carreraRef.collection("inscripciones")
+                .whereEqualTo("userId", userId)
+                .get()
+                .await()
+            isUserInscripto = !inscripcionesSnapshot.isEmpty
         }
     }
 
@@ -99,6 +106,10 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
         }
     }
 
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = Color.Black
+    ) { padding ->
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -205,7 +216,6 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
                 }
             }
 
-            // Nombre superpuesto SOLO cuando la imagen está visible
             if (listState.firstVisibleItemIndex == 0) {
                 Text(
                     text = carreraVisible.name.orEmpty(),
@@ -218,7 +228,6 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
                 )
             }
 
-            // Botones superpuestos
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -241,7 +250,6 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                // Botón central Iniciar / Detener
                 if (showConfigButton) {
                     val buttonColor = if (!carreraIniciada) GreenLogo else RedDetener
                     val buttonText = if (!carreraIniciada) "Iniciar" else "Detener"
@@ -265,7 +273,6 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                // Menú de configuración
                 if (showConfigButton) {
                     Box {
                         IconButton(
@@ -304,7 +311,6 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
                     }
                 }
             }
-
         }
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -333,11 +339,7 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
             Spacer(modifier = Modifier.width(6.dp))
 
             Text(
-                text = if (tieneLimite) {
-                    "$inscriptosActuales / $limite"
-                } else {
-                    "Sin límite"
-                },
+                text = if (tieneLimite) "$inscriptosActuales / $limite" else "Sin límite",
                 color = Color.LightGray,
                 fontSize = 14.sp
             )
@@ -345,12 +347,22 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        val scope = rememberCoroutineScope()
         Button(
             onClick = {
-                carreraVisible.id?.let { carreraId ->
-                    inscribirseViewModel.inscribirseACarrera(carreraId, userId) { success, mensaje ->
-                        mensajeInscripcion = mensaje
-                        if (success) actualizarInscriptosTrigger.value++
+                if (isUserInscripto) {
+                    scope.launch {
+                        snackbarHostState.showSnackbar("Ya estás inscripto en esta carrera ✅")
+                    }
+                } else {
+                    carreraVisible.id?.let { carreraId ->
+                        inscribirseViewModel.inscribirseACarrera(carreraId, userId) { success, mensaje ->
+                            mensajeInscripcion = mensaje
+                            if (success) {
+                                actualizarInscriptosTrigger.value++
+                                isUserInscripto = true
+                            }
+                        }
                     }
                 }
             },
@@ -358,9 +370,12 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
             colors = ButtonDefaults.buttonColors(containerColor = GreenLogo),
-            enabled = !tieneLimite || (limite - inscriptosActuales > 0)
+            enabled = (!tieneLimite || (limite - inscriptosActuales > 0)) || isUserInscripto
         ) {
-            Text("Inscribirme", color = Color.White)
+            Text(
+                text = if (isUserInscripto) "Ya estás inscripto" else "Inscribirme",
+                color = Color.White
+            )
         }
 
         mensajeInscripcion?.let {
@@ -383,6 +398,7 @@ fun CarreraDetailScreen(carrera: Carrera, navController: NavController) {
                 Text("Ver carrera", color = Color.White)
             }
         }
+    }
     }
 
     Spacer(modifier = Modifier.height(16.dp))

@@ -1,11 +1,12 @@
 package com.absdev.saferoad.core.navigation.SingUp
 
+import android.app.DatePickerDialog
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
@@ -14,9 +15,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.White
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -29,7 +30,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
-import java.util.Locale
+import java.util.*
 
 @Composable
 fun SingScreen(auth: FirebaseAuth, navController: NavController) {
@@ -41,6 +42,8 @@ fun SingScreen(auth: FirebaseAuth, navController: NavController) {
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val calendar = Calendar.getInstance()
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
@@ -64,9 +67,7 @@ fun SingScreen(auth: FirebaseAuth, navController: NavController) {
             }
 
             Spacer(modifier = Modifier.weight(1f))
-
             Text(text = "Register SCREEN", fontSize = 25.sp, color = White)
-
             Spacer(modifier = Modifier.weight(1f))
 
             TextField(
@@ -74,19 +75,45 @@ fun SingScreen(auth: FirebaseAuth, navController: NavController) {
                 onValueChange = { name = it },
                 label = { Text("Nombre") },
                 singleLine = true,
-                maxLines = 1
+                maxLines = 1,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 42.dp)
+                    .height(56.dp)
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            TextField(
-                value = birthDate,
-                onValueChange = { birthDate = it },
-                label = { Text("Fecha de nacimiento (dd/MM/yyyy)") },
-                singleLine = true,
-                maxLines = 1,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .clickable {
+                        DatePickerDialog(
+                            context,
+                            { _, year, month, dayOfMonth ->
+                                calendar.set(year, month, dayOfMonth)
+                                val format = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                                birthDate = format.format(calendar.time)
+                            },
+                            calendar.get(Calendar.YEAR),
+                            calendar.get(Calendar.MONTH),
+                            calendar.get(Calendar.DAY_OF_MONTH)
+                        ).show()
+                    }
+            ) {
+                TextField(
+                    value = birthDate,
+                    onValueChange = {},
+                    label = { Text("Fecha de nacimiento") },
+                    readOnly = true,
+                    enabled = false,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 42.dp)
+                        .height(56.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -95,7 +122,11 @@ fun SingScreen(auth: FirebaseAuth, navController: NavController) {
                 onValueChange = { email = it },
                 label = { Text("Email") },
                 singleLine = true,
-                maxLines = 1
+                maxLines = 1,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 42.dp)
+                    .height(56.dp)
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -116,7 +147,10 @@ fun SingScreen(auth: FirebaseAuth, navController: NavController) {
                         }
                     }
                 },
-                modifier = Modifier.padding(horizontal = 42.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 42.dp)
+                    .height(56.dp)
             )
 
             Spacer(modifier = Modifier.height(40.dp))
@@ -126,10 +160,6 @@ fun SingScreen(auth: FirebaseAuth, navController: NavController) {
                     if (name.isBlank() || birthDate.isBlank() || email.isBlank() || password.isBlank()) {
                         scope.launch {
                             snackbarHostState.showSnackbar("Por favor, completa todos los campos ❗")
-                        }
-                    } else if (!isValidDate(birthDate)) {
-                        scope.launch {
-                            snackbarHostState.showSnackbar("Fecha inválida. Usa el formato dd/MM/yyyy ❗")
                         }
                     } else {
                         auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener { task ->
@@ -180,17 +210,5 @@ fun SingScreen(auth: FirebaseAuth, navController: NavController) {
 
             Spacer(modifier = Modifier.weight(1f))
         }
-    }
-}
-
-// Función para validar formato de fecha
-fun isValidDate(dateStr: String): Boolean {
-    return try {
-        val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-        sdf.isLenient = false
-        sdf.parse(dateStr)
-        true
-    } catch (e: Exception) {
-        false
     }
 }

@@ -25,6 +25,10 @@ import com.absdev.saferoad.core.navigation.BottomNavigation.Admin.AdminBottomNav
 import com.absdev.saferoad.ui.theme.GreenLogo
 import com.absdev.saferoad.ui.theme.ShapeButton
 import com.google.firebase.auth.EmailAuthProvider
+import java.time.LocalDate
+import java.time.Period
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @Composable
 fun ProfileScreen(
@@ -111,8 +115,13 @@ fun ProfileScreen(
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
-            profile.birthDate?.let {
-                Text(text = "Edad: $it")
+            profile.birthDate?.let { birthDate ->
+                val edadCalculada = calcularEdad(birthDate)
+                if (edadCalculada != null) {
+                    Text(text = "Edad: $edadCalculada años")
+                } else {
+                    Text(text = "Edad: No disponible")
+                }
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
@@ -225,5 +234,25 @@ fun ProfileScreen(
             containerColor = Color.DarkGray
         )
     }
-
 }
+
+// Función para calcular la edad
+fun calcularEdad(birthDate: String): Int? {
+    return try {
+        val sdf = java.text.SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        val fecha = sdf.parse(birthDate)
+        val nacimiento = java.util.Calendar.getInstance().apply { time = fecha!! }
+        val hoy = java.util.Calendar.getInstance()
+
+        var edad = hoy.get(java.util.Calendar.YEAR) - nacimiento.get(java.util.Calendar.YEAR)
+
+        if (hoy.get(java.util.Calendar.DAY_OF_YEAR) < nacimiento.get(java.util.Calendar.DAY_OF_YEAR)) {
+            edad--
+        }
+
+        edad
+    } catch (e: Exception) {
+        null
+    }
+}
+
