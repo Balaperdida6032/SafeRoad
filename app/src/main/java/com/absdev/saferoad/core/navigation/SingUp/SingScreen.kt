@@ -39,6 +39,7 @@ fun SingScreen(auth: FirebaseAuth, navController: NavController) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    var pesoKg by remember { mutableStateOf("") }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -118,6 +119,23 @@ fun SingScreen(auth: FirebaseAuth, navController: NavController) {
             Spacer(modifier = Modifier.height(12.dp))
 
             TextField(
+                value = pesoKg,
+                onValueChange = {
+                    if (it.isEmpty() || it.matches(Regex("""^\d*\.?\d*$""")))
+                        pesoKg = it
+                },
+                label = { Text("Peso (kg)") },
+                singleLine = true,
+                maxLines = 1,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 42.dp)
+                    .height(56.dp)
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            TextField(
                 value = email,
                 onValueChange = { email = it },
                 label = { Text("Email") },
@@ -166,6 +184,7 @@ fun SingScreen(auth: FirebaseAuth, navController: NavController) {
                             if (task.isSuccessful) {
                                 val userId = task.result?.user?.uid
                                 val profile = Profile(
+                                    pesoKg = pesoKg.toFloatOrNull(),
                                     uid = userId,
                                     name = name,
                                     birthDate = birthDate,

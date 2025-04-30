@@ -6,5 +6,6 @@ data class Profile (
     val birthDate: String? = null,
     val email:String? = null,
     val password:String? = null,
-    val role:String? = "user"
+    val role:String? = "user",
+    val pesoKg: Float? = null
 )

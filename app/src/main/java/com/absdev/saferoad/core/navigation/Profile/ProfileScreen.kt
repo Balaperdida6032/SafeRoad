@@ -125,6 +125,11 @@ fun ProfileScreen(
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
+            profile.pesoKg?.let {
+                Text(text = "Peso: ${"%.1f".format(it)} kg")
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
             profile.email?.let {
                 Text(text = "Email: $it")
                 Spacer(modifier = Modifier.height(8.dp))

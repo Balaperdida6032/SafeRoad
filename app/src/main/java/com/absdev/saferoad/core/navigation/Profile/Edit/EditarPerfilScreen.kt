@@ -32,6 +32,7 @@ fun EditarPerfilScreen(navController: NavController) {
     var name by remember { mutableStateOf("") }
     var birthDate by remember { mutableStateOf("") }
     var loading by remember { mutableStateOf(true) }
+    var pesoKg by remember { mutableStateOf("") }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -44,6 +45,7 @@ fun EditarPerfilScreen(navController: NavController) {
                     val perfil = doc.toObject(Profile::class.java)
                     name = perfil?.name.orEmpty()
                     birthDate = perfil?.birthDate.orEmpty()
+                    pesoKg = perfil?.pesoKg?.toString().orEmpty()
                     loading = false
                 }
         }
@@ -134,7 +136,24 @@ fun EditarPerfilScreen(navController: NavController) {
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    TextField(
+                        value = pesoKg,
+                        onValueChange = {
+                            if (it.isEmpty() || it.matches(Regex("""^\d*\.?\d*$""")))
+                                pesoKg = it
+                        },
+                        label = { Text("Peso (kg)") },
+                        singleLine = true,
+                        maxLines = 1,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 42.dp)
+                            .height(56.dp)
+                    )
+
 
                     Button(
                         onClick = {
@@ -145,7 +164,8 @@ fun EditarPerfilScreen(navController: NavController) {
                             } else {
                                 val data = mapOf(
                                     "name" to name,
-                                    "birthDate" to birthDate
+                                    "birthDate" to birthDate,
+                                    "pesoKg" to pesoKg.toFloatOrNull()
                                 )
                                 userId?.let {
                                     db.collection("profile").document(it).update(data)

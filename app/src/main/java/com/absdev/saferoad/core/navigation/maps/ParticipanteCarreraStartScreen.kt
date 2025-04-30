@@ -46,6 +46,9 @@ fun ParticipanteCarreraStartScreen(
     var carreraIniciada by remember { mutableStateOf(false) }
     var ruta by remember { mutableStateOf<List<LatLng>>(emptyList()) }
     var carreraFinalizada by remember { mutableStateOf(false) }
+    var startTime by remember { mutableStateOf<Long?>(null) }
+    var endTime by remember { mutableStateOf<Long?>(null) }
+    val puntosRecorridos = remember { mutableStateListOf<Pair<LatLng, Long>>() }
 
     val locationCallback = rememberUpdatedState(newValue = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult) {
@@ -53,6 +56,7 @@ fun ParticipanteCarreraStartScreen(
             val db = FirebaseDatabase.getInstance().reference
             val location: Location = locationResult.lastLocation ?: return
             val latLng = LatLng(location.latitude, location.longitude)
+            puntosRecorridos.add(latLng to System.currentTimeMillis())
             userLocation = latLng
 
             // agarra nombre desde Firestore
@@ -115,6 +119,7 @@ fun ParticipanteCarreraStartScreen(
             Button(onClick = {
                 if (locationPermissionState.status.isGranted) {
                     carreraIniciada = true
+                    startTime = System.currentTimeMillis()
                 } else {
                     locationPermissionState.launchPermissionRequest()
                 }
@@ -151,7 +156,7 @@ fun ParticipanteCarreraStartScreen(
 
             val totalDist = remember(ruta) { calcularDistanciaTotal(ruta) }
             val progreso = calcularProgreso(userLocation, ruta)
-            val restante = totalDist * (1 - progreso.coerceIn(0f, 1f))
+            val restante = calcularDistanciaRestante(userLocation, ruta)
 
             if (ruta.isNotEmpty() && userLocation != null) {
                 Text("Distancia restante: ${"%.2f".format(restante)} km", color = Color.White)
@@ -167,6 +172,17 @@ fun ParticipanteCarreraStartScreen(
 
             //boton para salir si la carrera finalizó
             if (carreraFinalizada) {
+                if (endTime == null) endTime = System.currentTimeMillis()
+                val tiempoTotal = ((endTime ?: 0L) - (startTime ?: 0L)) / 1000
+                val distanciaKm = calcularDistanciaTotal(puntosRecorridos.map { it.first })
+                val tiempoHoras = tiempoTotal / 3600f
+                val velocidadPromedio = if (tiempoHoras > 0) distanciaKm / tiempoHoras else 0f
+                val calorias = estimarCalorias(distanciaKm, tiempoHoras, 70f)
+                Spacer(modifier = Modifier.height(12.dp))
+                Text("Resumen de carrera:", color = Color.White)
+                Text("Tiempo total: ${tiempoTotal / 60}m ${tiempoTotal % 60}s", color = Color.White)
+                Text("Velocidad promedio: ${"%.2f".format(velocidadPromedio)} km/h", color = Color.White)
+                Text("Calorías estimadas: $calorias kcal", color = Color.White)
                 Spacer(modifier = Modifier.height(32.dp))
                 Text("La carrera ha finalizado", color = Color.Red)
                 Spacer(modifier = Modifier.height(8.dp))
@@ -194,33 +210,7 @@ fun calcularDistanciaTotal(ruta: List<LatLng>): Float {
     return total / 1000f //en km
 }
 
-fun calcularProgreso(actual: LatLng?, ruta: List<LatLng>): Float {
-    if (actual == null || ruta.size < 2) return 0f
 
-    var distanciaRecorrida = 0f
-    var distanciaTotal = 0f
-
-    for (i in 0 until ruta.size - 1) {
-        val start = ruta[i]
-        val end = ruta[i + 1]
-        val tramo = FloatArray(1)
-        Location.distanceBetween(start.latitude, start.longitude, end.latitude, end.longitude, tramo)
-        distanciaTotal += tramo[0]
-
-        val proyeccion = proyectarPuntoSobreSegmento(actual, start, end)
-        val hastaProyeccion = FloatArray(1)
-        Location.distanceBetween(start.latitude, start.longitude, proyeccion.latitude, proyeccion.longitude, hastaProyeccion)
-
-        val estaEnTramo = estaEntre(actual, start, end)
-        if (estaEnTramo) {
-            distanciaRecorrida += hastaProyeccion[0]
-            break
-        } else {
-            distanciaRecorrida += tramo[0]
-        }
-    }
-    return (distanciaRecorrida / distanciaTotal).coerceIn(0f, 1f)
-}
 
 fun proyectarPuntoSobreSegmento(p: LatLng, a: LatLng, b: LatLng): LatLng {
     val apx = p.longitude - a.longitude
@@ -244,4 +234,77 @@ fun estaEntre(p: LatLng, a: LatLng, b: LatLng): Boolean {
     if (dotproduct > squaredlengthba) return false
 
     return true
+}
+
+
+fun estimarCalorias(distanciaKm: Float, tiempoHoras: Float, pesoKg: Float = 70f): Int {
+    val met = 9.8f // correr suave
+    return (met * pesoKg * tiempoHoras).toInt()
+}
+
+
+fun calcularProgreso(actual: LatLng?, ruta: List<LatLng>): Float {
+    if (actual == null || ruta.size < 2) return 0f
+
+    var distanciaHastaUsuario = 0f
+    var distanciaTotal = 0f
+    var distanciaMinima = Float.MAX_VALUE
+    var encontrado = false
+
+    for (i in 0 until ruta.size - 1) {
+        val start = ruta[i]
+        val end = ruta[i + 1]
+        val segmento = FloatArray(1)
+        Location.distanceBetween(start.latitude, start.longitude, end.latitude, end.longitude, segmento)
+        distanciaTotal += segmento[0]
+
+        val proyeccion = proyectarPuntoSobreSegmento(actual, start, end)
+        val distAlPunto = FloatArray(1)
+        Location.distanceBetween(actual.latitude, actual.longitude, proyeccion.latitude, proyeccion.longitude, distAlPunto)
+
+        if (distAlPunto[0] < distanciaMinima) {
+            distanciaMinima = distAlPunto[0]
+            encontrado = true
+
+            // Sumar la distancia recorrida hasta ese tramo
+            distanciaHastaUsuario = 0f
+            for (j in 0 until i) {
+                val tramo = FloatArray(1)
+                Location.distanceBetween(ruta[j].latitude, ruta[j].longitude, ruta[j+1].latitude, ruta[j+1].longitude, tramo)
+                distanciaHastaUsuario += tramo[0]
+            }
+            val tramoProy = FloatArray(1)
+            Location.distanceBetween(start.latitude, start.longitude, proyeccion.latitude, proyeccion.longitude, tramoProy)
+            distanciaHastaUsuario += tramoProy[0]
+        }
+    }
+
+    return if (encontrado && distanciaTotal > 0) (distanciaHastaUsuario / distanciaTotal).coerceIn(0f, 1f) else 0f
+}
+
+
+fun calcularDistanciaRestante(actual: LatLng?, ruta: List<LatLng>): Float {
+    if (actual == null || ruta.size < 2) return 0f
+
+    var distanciaRestante = 0f
+    var distanciaMinima = Float.MAX_VALUE
+    var desdeIndex = 0
+
+    for (i in 0 until ruta.size - 1) {
+        val start = ruta[i]
+        val end = ruta[i + 1]
+        val proyeccion = proyectarPuntoSobreSegmento(actual, start, end)
+        val distancia = FloatArray(1)
+        Location.distanceBetween(actual.latitude, actual.longitude, proyeccion.latitude, proyeccion.longitude, distancia)
+
+        if (distancia[0] < distanciaMinima) {
+            distanciaMinima = distancia[0]
+            desdeIndex = i
+        }
+    }
+
+    // Desde el punto más cercano hasta el final
+    val puntoInicio = proyectarPuntoSobreSegmento(actual, ruta[desdeIndex], ruta[desdeIndex + 1])
+    val tempRuta = listOf(puntoInicio) + ruta.subList(desdeIndex + 1, ruta.size)
+    return calcularDistanciaTotal(tempRuta)
 }
